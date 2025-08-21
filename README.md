@@ -1,58 +1,53 @@
-# Discovery & recommendations
+# Letterbox Discovery&Recommendations Frontend
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Este repositorio contiene el frontend del proyecto **Letterbox**, encargado de la interfaz de **Discovery&Recommendations** de películas.
+
+## Descripción
+
+La aplicación permite a los usuarios descubrir películas, ver recomendaciones personalizadas y sociales, y explorar tendencias, todo con una interfaz moderna y fácil de usar.
+
+## Input y Output (*Susceptible a modificación*)
+
+- **Input:** El frontend consume datos de películas, historial de usuario, ratings, y amigos, obtenidos desde el backend.
+- **Output:** Muestra recomendaciones como "Otros Usuarios también vieron", "Para ver con tus amigos", "Nuevo Descubrimiento" y "Trending y Top".
+
+## Tecnologías
+
+- **Nuxt.js**
+- **GraphQL** para comunicación con el backend.
+  > _**Primera entrega se hace con datos mockupeados**_
 
 ## Setup
 
-Make sure to install dependencies:
+Instala las dependencias:
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
 ```
 
-## Development Server
+## Desarrollo
 
-Start the development server on `http://localhost:3000`:
+Inicia el servidor de desarrollo en `http://localhost:3000`:
 
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-
 ```
 
-## Production
+## Producción
 
-Build the application for production:
+Construye la aplicación 
+para producción:
 
 ```bash
-# npm
 npm run build
-
-# pnpm
-pnpm build
-
-
 ```
 
-Locally preview production build:
+Previsualiza el build de producción localmente:
 
 ```bash
-# npm
 npm run preview
-
-# pnpm
-pnpm preview
-
-
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Contribuir
+
+- Haz un fork o crea una branch para tu _feature o fix._
