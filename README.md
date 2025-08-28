@@ -35,7 +35,7 @@ npm run dev
 
 ## Producción
 
-Construye la aplicación 
+Construye la aplicación
 para producción:
 
 ```bash
