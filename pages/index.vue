@@ -1,3 +1,3 @@
 <template>
-  <h1> Hola mundo</h1>
+  <div class="flex min-h-screen bg-gradient-to-t from-nav to-footer"></div>
 </template>

@@ -1,5 +1,7 @@
 <template>
-  <Navbar />
-  <slot />
-  <Footer />
+  <UApp>
+    <Navbar />
+    <NuxtPage />
+    <Footer />
+  </UApp>
 </template>
