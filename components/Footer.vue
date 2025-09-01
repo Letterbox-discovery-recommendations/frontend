@@ -7,17 +7,17 @@ const links = [
 </script>
 
 <template>
-  <div class="bg-footer flex flex-col gap-3 w-full p-14 items-center">
-    <div class="flex gap-6 justify-start w-full">
+  <div class="bg-footer flex w-full flex-col items-center gap-3 p-14">
+    <div class="flex w-full justify-start gap-6">
       <NuxtLink
-        class="font-bold text-base text-[#99AABB] hover:opacity-80 transition"
         v-for="link in links"
         :key="link.url"
+        class="text-base font-bold text-[#99AABB] transition hover:opacity-80"
         :to="link.url"
         >{{ link.text }}</NuxtLink
       >
     </div>
-    <p class="w-full text-[#9CB4CC] text-sm justify-start">
+    <p class="w-full justify-start text-sm text-[#9CB4CC]">
       © cineTrack - Todos los derechos reservados.
     </p>
   </div>
