@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const user = false;
+
 const links = [
   {
     text: "USUARIO",
@@ -12,31 +14,69 @@ const links = [
     text: "¿QUÉ VEO HOY?",
     url: "/films",
   },
+  {
+    text: "TOPS",
+    url: "/tops",
+  },
+  {
+    text: "CRÍTICAS POPULARES",
+    url: "/criticas",
+  },
+];
+
+const linksUser = [
+  {
+    text: "FILMS",
+    url: "/films",
+  },
+  {
+    text: "TOPS",
+    url: "/tops",
+  },
+  {
+    text: "CRÍTICAS POPULARES",
+    url: "/criticas",
+  },
 ];
 </script>
 
 <template>
-  <div class="bg-nav flex justify-around items-center p-6">
-    <NuxtLink class="font-bold text-2xl" to="/">cineTrack</NuxtLink>
+  <div
+    class="bg-nav/90 border-nav sticky top-0 z-50 flex items-center justify-evenly border-b p-6 backdrop-blur-md"
+  >
+    <NuxtLink class="flex items-center gap-5 text-2xl font-bold" to="/">
+      <NuxtImg src="/images/logo.png" alt="logo" width="54" height="37" />
+      cineTrack</NuxtLink
+    >
 
     <div class="flex items-center gap-8">
+      <UButton v-if="!user" class="bg-red hover:bg-red/80 font-bold text-white"
+        >INICIAR SESIÓN</UButton
+      >
       <NuxtLink
-        class="hover:opacity-80 transition font-bold font-montserrat text-base text-dimtext"
-        v-for="link in links"
+        v-for="link in user ? links : linksUser"
         :key="link.url"
+        class="font-montserrat text-dimtext text-base font-bold transition hover:opacity-80"
         :to="link.url"
-        >{{ link.text }}</NuxtLink
       >
+        {{ link.text }}
+      </NuxtLink>
       <UButton
-        class="bg-red rounded-full p-2 transition hover:bg-red/80 cursor-pointer"
+        class="bg-red hover:bg-red/80 cursor-pointer rounded-full p-2 transition"
       >
-        <UIcon name="i-lucide-gamepad-2" class="text-white size-7" />
+        <UIcon name="i-lucide-gamepad-2" class="size-7 text-white" />
       </UButton>
       <UInput
+        size="lg"
         trailing-icon="i-lucide-search"
-        color="neutral"
-        variant="soft"
+        color="info"
+        variant="subtle"
         placeholder="Busca una película..."
+      />
+      <UButton
+        v-if="user"
+        class="bg-teal hover:bg-teal/80 font-bold text-black"
+        icon="i-lucide-log-out"
       />
     </div>
   </div>
