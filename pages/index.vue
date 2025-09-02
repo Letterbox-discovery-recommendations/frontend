@@ -1,6 +1,7 @@
 <script setup lang="ts">
 useSeoMeta({
-  title: "Welcome to cineTrack",
+  title: "cineTrack - Inicio",
+  description: "Descubrí las mejores películas.",
 });
 </script>
 
