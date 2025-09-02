@@ -5,5 +5,5 @@ useSeoMeta({
 </script>
 
 <template>
-  <div class="from-nav to-footer flex min-h-screen bg-gradient-to-t"></div>
+  <div class="from-nav to-footer flex bg-gradient-to-t"></div>
 </template>
