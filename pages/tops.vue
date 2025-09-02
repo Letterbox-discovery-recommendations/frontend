@@ -12,7 +12,7 @@ useSeoMeta({
     <MovieCarousel
       title="Movies by Platform"
       :filter="true"
-      :filterOptions="['Netflix', 'HBO', 'Amazon Prime', 'Disney+']"
+      :filter-options="['Netflix', 'HBO', 'Amazon Prime', 'Disney+']"
     />
     <MovieCarousel title="Mejores pelis" />
     <MovieCarousel title="Mas vistas" />
