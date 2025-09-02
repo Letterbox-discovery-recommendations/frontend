@@ -25,7 +25,7 @@ const defaultMovies = [
 const movies = computed(() => props.movies || defaultMovies);
 </script>
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex w-full flex-col justify-center gap-4">
     <h2 class="text-2xl font-bold text-white">
       {{ props.title }}
     </h2>

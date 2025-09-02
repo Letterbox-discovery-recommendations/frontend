@@ -11,7 +11,7 @@ const props = defineProps<MovieProps>();
 
 <template>
   <div
-    class="mx-4 flex h-[225px] w-[180px] flex-col rounded-md border border-gray-400/10 bg-[#445566] shadow-lg backdrop-blur-md"
+    class="flex h-[225px] w-[180px] flex-col justify-center rounded-md border border-gray-400/10 bg-[#445566] shadow-lg backdrop-blur-md"
   >
     <div class="w-full flex-1 overflow-hidden">
       <NuxtImg
