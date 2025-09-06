@@ -4,6 +4,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxt/ui", "@nuxt/eslint", "@nuxt/image", "@nuxtjs/seo"],
   css: ["~/main.css"],
+  ogImage: { enabled: false },
   nitro: {
     preset: 'static',
     prerender: {
