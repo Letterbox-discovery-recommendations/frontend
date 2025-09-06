@@ -13,6 +13,7 @@ export default defineNuxtConfig({
     }
   },
   image: {
+    provider: 'cloudfront',
     providers: {
       cloudfront: {
         provider: 'ipx',
