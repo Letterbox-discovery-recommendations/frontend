@@ -12,6 +12,16 @@ export default defineNuxtConfig({
       ignore: ['/__sitemap__/style.xsl']
     }
   },
+  image: {
+    providers: {
+      cloudfront: {
+        provider: 'ipx',
+        options: {
+          baseURL: '/images' // o el bucket estático
+        }
+      }
+    }
+  },
   hooks: {
     'prerender:routes'({ routes }) {
       routes.clear()
