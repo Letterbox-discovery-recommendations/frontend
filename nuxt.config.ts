@@ -6,22 +6,12 @@ export default defineNuxtConfig({
   css: ["~/main.css"],
   ogImage: { enabled: false },
   nitro: {
-    preset: 'static',
     prerender: {
-      routes: ['/'],
       ignore: ['/__sitemap__/style.xsl']
     }
   },
   image: {
-    provider: 'cloudfront',
-    providers: {
-      cloudfront: {
-        provider: 'ipx',
-        options: {
-          baseURL: '/images' // o el bucket estático
-        }
-      }
-    }
+    provider: 'static'
   },
   hooks: {
     'prerender:routes'({ routes }) {
