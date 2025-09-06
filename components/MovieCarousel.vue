@@ -16,7 +16,6 @@ if (props?.filterOptions) {
   value.value = props.filterOptions[0];
 }
 
-// Default mock movies if none provided
 const defaultMovies = [
   { title: "The Witch", src: "images/cat.jpg" },
   { title: "Alien Covenant", src: "https://picsum.photos/180/260?random=2" },
