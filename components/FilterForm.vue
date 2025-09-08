@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const filterStore = useFilterStore();
+
 const estrenoItems = ref([
   "2020s",
   "2010s",
@@ -17,20 +19,16 @@ const estrenoItems = ref([
 ]);
 
 const generoItems = ref([
-  "Acción",
-  "Aventura",
-  "Animación",
-  "Comedia",
-  "Crimen",
-  "Documental",
+  "Action",
+  "Sci-Fi",
   "Drama",
-  "Familiar",
-  "Fantasía",
-  "Historia",
+  "Crime",
   "Horror",
-  "Misterio",
   "Romance",
-  "Ciencia ficción",
+  "Mystery",
+  "Thriller",
+  "Fantasy",
+  "Unknown",
 ]);
 
 const ratingItems = ref(["Alto a bajo", "Bajo a alto"]);
@@ -49,41 +47,53 @@ const selectedGenero = ref([]);
 const selectedRating = ref();
 const selectedDuracion = ref();
 const selectedPlataforma = ref([]);
+
+const applyFilters = () => {
+  filterStore.setFilters({
+    genres: selectedGenero.value,
+    estreno: selectedEstreno.value,
+    rating: selectedRating.value,
+    duracion: selectedDuracion.value,
+    plataforma: selectedPlataforma.value,
+  });
+
+  console.log("Filters applied:", filterStore.filters);
+};
 </script>
 
 <template>
   <div class="flex items-center gap-4">
     <h2 class="text-base font-bold text-white">FILTRAR POR</h2>
     <USelectMenu
-      placeholder="Estreno"
       v-model="selectedEstreno"
+      placeholder="Estreno"
       multiple
       :items="estrenoItems"
       class="w-48"
     />
     <USelectMenu
-      placeholder="Género"
       v-model="selectedGenero"
+      placeholder="Género"
       multiple
       :items="generoItems"
       class="w-48"
     />
 
     <USelectMenu
-      placeholder="Rating"
       v-model="selectedRating"
+      placeholder="Rating"
       :items="ratingItems"
       class="w-48"
     />
     <USelectMenu
-      placeholder="Duración"
       v-model="selectedDuracion"
+      placeholder="Duración"
       :items="duracionItems"
       class="w-48"
     />
     <USelectMenu
-      placeholder="Plataforma"
       v-model="selectedPlataforma"
+      placeholder="Plataforma"
       multiple
       :items="plataformaItems"
       class="w-48"
@@ -92,6 +102,7 @@ const selectedPlataforma = ref([]);
     <UButton
       class="bg-red hover:bg-red/80 px-4 font-bold text-white"
       label="APLICAR"
+      @click="applyFilters"
     />
   </div>
 </template>

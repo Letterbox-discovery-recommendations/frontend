@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "@nuxtjs/seo",
     "@pinia/nuxt",
+    "@nuxt/content",
   ],
   css: ["~/main.css"],
 });
