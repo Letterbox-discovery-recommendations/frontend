@@ -28,7 +28,7 @@ const props = defineProps<MovieProps>();
   </div>
 </template>
 
-<style>
+<style scoped>
 .img {
   border-top-left-radius: 0.34rem;
   border-top-right-radius: 0.34rem;
