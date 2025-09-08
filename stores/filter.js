@@ -5,16 +5,11 @@ export const useFilterStore = defineStore("filter", {
     filters: {},
   }),
   actions: {
-    setFilters(newFilters: Record<string, any>) {
-      this.filters = newFilters;
+    setFilters(newFilters) {
+      this.filters = newFilters.flat();
     },
     clearFilters() {
       this.filters = {};
-    },
-    removeFilterItem(key: string) {
-      if (this.filters.hasOwnProperty(key)) {
-        delete this.filters[key];
-      }
     },
   },
 });

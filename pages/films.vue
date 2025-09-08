@@ -1,4 +1,9 @@
 <script setup lang="ts">
+useSeoMeta({
+  title: "cineTrack - Films",
+  description: "Filtra entre todas las peliculas .",
+});
+
 const movies = [
   // Row 1
   { title: "The Witch", src: "images/cat.jpg" },
