@@ -8,13 +8,39 @@ const { data: allMovies } = await useAsyncData("all-movies", () => {
 const filteredMovies = computed(() => {
   if (!allMovies.value) return [];
 
-  if (!filterStore.hasGenreFilters) {
+  let filtered = allMovies.value;
+
+  if (filterStore.hasGenreFilters) {
+    filtered = filtered.filter((movie) =>
+      filterStore.filters.genres.includes(movie.genre)
+    );
+  }
+
+  if (filterStore.hasRatingFilter) {
+    const ratingFilter = filterStore.filters.rating;
+    if (ratingFilter === "Alto a bajo") {
+      filtered = filtered.sort((a, b) => b.rating - a.rating);
+    } else if (ratingFilter === "Bajo a alto") {
+      filtered = filtered.sort((a, b) => a.rating - b.rating);
+    }
+  }
+
+  if (filterStore.hasDurationFilter) {
+    const durationFilter = filterStore.filters.duracion;
+    if (durationFilter === "Más de 120 min") {
+      filtered = filtered.filter((movie) => movie.duration > 120);
+    } else if (durationFilter === "Entre 90 y 120 min") {
+      filtered = filtered.filter((movie) => movie.duration >= 90 && movie.duration <= 120);
+    } else if (durationFilter === "Menos de 90 min") {
+      filtered = filtered.filter((movie) => movie.duration < 90);
+    }
+  }
+
+  if (!filterStore.hasAnyFilters) {
     return allMovies.value;
   }
 
-  return allMovies.value.filter((movie) =>
-    filterStore.filters.genres.includes(movie.genre),
-  );
+  return filtered;
 });
 
 useSeoMeta({
