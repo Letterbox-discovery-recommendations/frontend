@@ -1,0 +1,81 @@
+query GetMovies(
+  $limit: Int = 24
+  $minRating: Float
+  $maxRating: Float
+  $minDuration: Int
+  $maxDuration: Int
+  $platform: String
+  $genre: String
+) {
+  movies(
+    limit: $limit
+    minRating: $minRating
+    maxRating: $maxRating
+    minDuration: $minDuration
+    maxDuration: $maxDuration
+    platform: $platform
+    genre: $genre
+  ) {
+    id
+    title
+    description
+    releaseYear
+    director
+    duration
+    platform
+    rating
+    genres {
+      id
+      name
+    }
+    cast {
+      id
+      name
+      age
+      gender
+    }
+  }
+}
+
+query GetMoviesByGenre($genre: String!, $limit: Int = 12) {
+  movies(genre: $genre, limit: $limit) {
+    id
+    title
+    description
+    rating
+    duration
+    platform
+    genres {
+      name
+    }
+  }
+}
+
+query GetTopRatedMovies($limit: Int = 10, $minRating: Float = 4.0) {
+  movies(limit: $limit, minRating: $minRating) {
+    id
+    title
+    rating
+    releaseYear
+    director
+    genres {
+      name
+    }
+  }
+}
+
+query GetGenres {
+  genres {
+    id
+    name
+  }
+}
+
+query GetActors {
+  actors {
+    id
+    name
+    age
+    gender
+  }
+}

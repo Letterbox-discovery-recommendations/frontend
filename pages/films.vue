@@ -1,47 +1,36 @@
 <script setup>
 const filterStore = useFilterStore();
 
-const { data: allMovies } = await useAsyncData("all-movies", () => {
-  return queryCollection("movies").all();
+const variables = computed(() => ({
+  limit: 24,
+  genre: filterStore.filters.genres.length
+    ? filterStore.filters.genres[0]
+    : undefined,
+  minRating: filterStore.filters.rating === "Alto a bajo" ? 4.0 : undefined,
+  maxRating: filterStore.filters.rating === "Bajo a alto" ? 3.0 : undefined,
+  minDuration:
+    filterStore.filters.duracion === "Más de 120 min"
+      ? 120
+      : filterStore.filters.duracion === "Entre 90 y 120 min"
+        ? 90
+        : undefined,
+  maxDuration:
+    filterStore.filters.duracion === "Entre 90 y 120 min"
+      ? 120
+      : filterStore.filters.duracion === "Menos de 90 min"
+        ? 90
+        : undefined,
+  platform: filterStore.filters.plataforma.length
+    ? filterStore.filters.plataforma[0]
+    : undefined,
+}));
+
+const { data } = await useAsyncGql({
+  operation: "GetMovies",
+  variables: variables,
 });
 
-const filteredMovies = computed(() => {
-  if (!allMovies.value) return [];
-
-  let filtered = allMovies.value;
-
-  if (filterStore.hasGenreFilters) {
-    filtered = filtered.filter((movie) =>
-      filterStore.filters.genres.includes(movie.genre)
-    );
-  }
-
-  if (filterStore.hasRatingFilter) {
-    const ratingFilter = filterStore.filters.rating;
-    if (ratingFilter === "Alto a bajo") {
-      filtered = filtered.sort((a, b) => b.rating - a.rating);
-    } else if (ratingFilter === "Bajo a alto") {
-      filtered = filtered.sort((a, b) => a.rating - b.rating);
-    }
-  }
-
-  if (filterStore.hasDurationFilter) {
-    const durationFilter = filterStore.filters.duracion;
-    if (durationFilter === "Más de 120 min") {
-      filtered = filtered.filter((movie) => movie.duration > 120);
-    } else if (durationFilter === "Entre 90 y 120 min") {
-      filtered = filtered.filter((movie) => movie.duration >= 90 && movie.duration <= 120);
-    } else if (durationFilter === "Menos de 90 min") {
-      filtered = filtered.filter((movie) => movie.duration < 90);
-    }
-  }
-
-  if (!filterStore.hasAnyFilters) {
-    return allMovies.value;
-  }
-
-  return filtered;
-});
+const filteredMovies = computed(() => data.value?.movies || []);
 
 useSeoMeta({
   title: "cineTrack - Films",

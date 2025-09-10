@@ -9,6 +9,13 @@ export default defineNuxtConfig({
     "@nuxtjs/seo",
     "@pinia/nuxt",
     "@nuxt/content",
+    "nuxt-graphql-client",
   ],
   css: ["~/main.css"],
+
+  runtimeConfig: {
+    public: {
+      GQL_HOST: "http://127.0.0.1:8000/graphql",
+    },
+  },
 });
