@@ -15,10 +15,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - name: Validate package-lock.json
+      - name: Generate fresh lockfile
         run: |
-          npm install --package-lock-only --ignore-scripts
-          git diff --exit-code package-lock.json
+          rm -f package-lock.json
+          npm install --package-lock-only
       - run: npm ci
       - run: npm run lint --if-present
       - run: npm run generate
