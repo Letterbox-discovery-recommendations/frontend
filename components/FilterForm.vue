@@ -1,6 +1,10 @@
 <script setup lang="ts">
 const filterStore = useFilterStore();
 
+const { data } = useAsyncGql({
+  operation: "GetGenres",
+});
+
 const estrenoItems = ref([
   "2020s",
   "2010s",
@@ -18,18 +22,17 @@ const estrenoItems = ref([
   "1800s",
 ]);
 
-const generoItems = ref([
-  "Action",
-  "Sci-Fi",
-  "Drama",
-  "Crime",
-  "Horror",
-  "Romance",
-  "Mystery",
-  "Thriller",
-  "Fantasy",
-  "Unknown",
-]);
+const generoItems = ref<string[]>([]);
+
+watch(
+  () => data.value,
+  (newData) => {
+    if (newData && newData.generos) {
+      generoItems.value = newData.generos.map((genre: { nombre: string }) => genre.nombre);
+    }
+  },
+  { immediate: true }
+);
 
 const ratingItems = ref(["Alto a bajo", "Bajo a alto"]);
 
@@ -72,6 +75,7 @@ const applyFilters = () => {
       class="w-48"
     />
     <USelectMenu
+      v-if="data && data.generos"
       v-model="selectedGenero"
       placeholder="Género"
       multiple

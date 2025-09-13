@@ -1,81 +1,138 @@
 query GetMovies(
-  $limit: Int = 24
-  $minRating: Float
-  $maxRating: Float
+  $titulo: String
+  $generos: [String!]
+  $plataformas: [String!]
   $minDuration: Int
   $maxDuration: Int
-  $platform: String
-  $genre: String
+  $minYear: Int
+  $maxYear: Int
 ) {
-  movies(
-    limit: $limit
-    minRating: $minRating
-    maxRating: $maxRating
+  peliculas(
+    titulo: $titulo
+    generos: $generos
+    plataformas: $plataformas
     minDuration: $minDuration
     maxDuration: $maxDuration
-    platform: $platform
-    genre: $genre
+    minYear: $minYear
+    maxYear: $maxYear
   ) {
     id
-    title
-    description
-    releaseYear
-    director
-    duration
-    platform
-    rating
-    genres {
+    titulo
+    sinopsis
+    duracionMinutos
+    fechaEstreno
+    posterUrl
+    director {
       id
-      name
+      nombre
+      imagenUrl
+      genero
     }
-    cast {
+    generos {
       id
-      name
-      age
-      gender
+      nombre
+    }
+    plataformas {
+      id
+      nombre
+      logoUrl
+    }
+    elenco {
+      personaje
+      orden
+      actor {
+        id
+        nombre
+        imagenUrl
+        genero
+      }
     }
   }
 }
 
-query GetMoviesByGenre($genre: String!, $limit: Int = 12) {
-  movies(genre: $genre, limit: $limit) {
+query GetMoviesByGenre($generos: [String!]!) {
+  peliculas(generos: $generos) {
     id
-    title
-    description
-    rating
-    duration
-    platform
-    genres {
-      name
+    titulo
+    sinopsis
+    duracionMinutos
+    posterUrl
+    generos {
+      nombre
     }
   }
 }
 
-query GetTopRatedMovies($limit: Int = 10, $minRating: Float = 4.0) {
-  movies(limit: $limit, minRating: $minRating) {
+query GetTopRatedMovies($minYear: Int) {
+  peliculas(minYear: $minYear) {
     id
-    title
-    rating
-    releaseYear
-    director
-    genres {
-      name
+    titulo
+    fechaEstreno
+    director {
+      nombre
+    }
+    generos {
+      nombre
     }
   }
 }
 
 query GetGenres {
-  genres {
+  generos {
     id
-    name
+    nombre
   }
 }
 
-query GetActors {
-  actors {
+query GetPlatforms {
+  plataformas {
     id
-    name
-    age
-    gender
+    nombre
+    logoUrl
+  }
+}
+
+query GetPersonas($nombre: String) {
+  personas(nombre: $nombre) {
+    id
+    nombre
+    imagenUrl
+    genero
+  }
+}
+
+query GetMovie($id: Int!) {
+  pelicula(id: $id) {
+    id
+    titulo
+    sinopsis
+    duracionMinutos
+    fechaEstreno
+    posterUrl
+    director {
+      id
+      nombre
+      imagenUrl
+      genero
+    }
+    generos {
+      id
+      nombre
+    }
+    plataformas {
+      id
+      nombre
+      logoUrl
+    }
+    elenco {
+      personaje
+      orden
+      actor {
+        id
+        nombre
+        imagenUrl
+        genero
+      }
+    }
   }
 }

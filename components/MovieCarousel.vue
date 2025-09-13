@@ -48,7 +48,7 @@ const movies = computed(() => props.movies || defaultMovies);
       v-slot="{ item }"
       arrows
       :items="movies"
-      :ui="{ item: 'basis-1/5' }"
+      :ui="{ item: 'basis-1/7' }"
     >
       <Movie :src="item.src" :title="item.title" />
     </UCarousel>

@@ -2,12 +2,9 @@
 const filterStore = useFilterStore();
 
 const variables = computed(() => ({
-  limit: 24,
-  genre: filterStore.filters.genres.length
-    ? filterStore.filters.genres[0]
+  generos: filterStore.filters.genres.length
+    ? filterStore.filters.genres
     : undefined,
-  minRating: filterStore.filters.rating === "Alto a bajo" ? 4.0 : undefined,
-  maxRating: filterStore.filters.rating === "Bajo a alto" ? 3.0 : undefined,
   minDuration:
     filterStore.filters.duracion === "Más de 120 min"
       ? 120
@@ -20,8 +17,8 @@ const variables = computed(() => ({
       : filterStore.filters.duracion === "Menos de 90 min"
         ? 90
         : undefined,
-  platform: filterStore.filters.plataforma.length
-    ? filterStore.filters.plataforma[0]
+  plataformas: filterStore.filters.plataforma.length
+    ? filterStore.filters.plataforma
     : undefined,
 }));
 
@@ -30,7 +27,9 @@ const { data } = await useAsyncGql({
   variables: variables,
 });
 
-const filteredMovies = computed(() => data.value?.movies || []);
+console.log(data);
+
+const filteredMovies = computed(() => data.value?.peliculas || []);
 
 useSeoMeta({
   title: "cineTrack - Films",
@@ -44,14 +43,13 @@ useSeoMeta({
   >
     <FilterForm />
 
-    <!-- Movies Grid - 4 rows x 6 columns -->
     <div class="container mx-auto px-4 py-8">
       <div class="grid grid-cols-6 gap-6">
         <Movie
           v-for="movie in filteredMovies"
-          :key="movie._id"
-          :title="movie.title"
-          :src="movie.src"
+          :key="movie.id"
+          :title="movie.titulo"
+          :src="movie.posterUrl"
         />
       </div>
     </div>
