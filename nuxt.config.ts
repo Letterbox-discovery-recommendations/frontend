@@ -8,7 +8,6 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "@nuxtjs/seo",
     "@pinia/nuxt",
-    "@nuxt/content",
     "nuxt-graphql-client",
   ],
   css: ["~/main.css"],
