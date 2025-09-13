@@ -14,14 +14,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-      - name: Generate fresh lockfile
-        run: |
-          rm -f package-lock.json
-          npm install --package-lock-only --ignore-scripts
-      - run: npm ci
-      - run: npm run lint --if-present
-      - run: npm run generate
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn generate
       - name: Verify output
         run: test -d .output/public || (echo "Not found > .output/public" && exit 1)
       - name: Upload production build
