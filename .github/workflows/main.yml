@@ -15,6 +15,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
+      - run: npm install
       - run: npm ci
       - run: npm run lint --if-present
       - run: npm run generate
