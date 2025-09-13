@@ -18,7 +18,7 @@ jobs:
       - name: Generate fresh lockfile
         run: |
           rm -f package-lock.json
-          npm install --package-lock-only
+          npm install --package-lock-only --ignore-scripts
       - run: npm ci
       - run: npm run lint --if-present
       - run: npm run generate
