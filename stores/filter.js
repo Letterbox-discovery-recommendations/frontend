@@ -11,9 +11,6 @@ export const useFilterStore = defineStore("filter", {
     },
   }),
   actions: {
-    setGenres(genres) {
-      this.filters.genres = genres || [];
-    },
     setFilters(newFilters) {
       this.filters = { ...this.filters, ...newFilters };
     },
@@ -30,5 +27,14 @@ export const useFilterStore = defineStore("filter", {
   getters: {
     hasGenreFilters: (state) =>
       state.filters.genres && state.filters.genres.length > 0,
+    hasRatingFilter: (state) => state.filters.rating !== null,
+    hasDurationFilter: (state) => state.filters.duracion !== null,
+    hasAnyFilters: (state) => {
+      return (
+        (state.filters.genres && state.filters.genres.length > 0) ||
+        state.filters.rating !== null ||
+        state.filters.duracion !== null
+      );
+    },
   },
 });

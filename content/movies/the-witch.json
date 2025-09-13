@@ -1,1 +1,2 @@
-{ "title": "The Witch", "src": "images/cat.jpg", "genre": "Horror" }
+
+{ "title": "The Witch", "src": "images/cat.jpg", "genre": "Horror", "rating": 4.2, "duration": 92 }

@@ -9,13 +9,13 @@ export default defineNuxtConfig({
     "@nuxtjs/seo",
     "@pinia/nuxt",
     "@nuxt/content",
+    "nuxt-graphql-client",
   ],
   css: ["~/main.css"],
 
-  // No es buena practica, necesario para correr el CI provisoriamente hasta tener las rutas enlazadas.
-  nitro: {
-    prerender: {
-      failOnError: false
-    }
-  }
+  runtimeConfig: {
+    public: {
+      GQL_HOST: "http://127.0.0.1:8000/graphql",
+    },
+  },
 });

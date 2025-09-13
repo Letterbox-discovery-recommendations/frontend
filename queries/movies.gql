@@ -1,0 +1,138 @@
+query GetMovies(
+  $titulo: String
+  $generos: [String!]
+  $plataformas: [String!]
+  $minDuration: Int
+  $maxDuration: Int
+  $minYear: Int
+  $maxYear: Int
+) {
+  peliculas(
+    titulo: $titulo
+    generos: $generos
+    plataformas: $plataformas
+    minDuration: $minDuration
+    maxDuration: $maxDuration
+    minYear: $minYear
+    maxYear: $maxYear
+  ) {
+    id
+    titulo
+    sinopsis
+    duracionMinutos
+    fechaEstreno
+    posterUrl
+    director {
+      id
+      nombre
+      imagenUrl
+      genero
+    }
+    generos {
+      id
+      nombre
+    }
+    plataformas {
+      id
+      nombre
+      logoUrl
+    }
+    elenco {
+      personaje
+      orden
+      actor {
+        id
+        nombre
+        imagenUrl
+        genero
+      }
+    }
+  }
+}
+
+query GetMoviesByGenre($generos: [String!]!) {
+  peliculas(generos: $generos) {
+    id
+    titulo
+    sinopsis
+    duracionMinutos
+    posterUrl
+    generos {
+      nombre
+    }
+  }
+}
+
+query GetTopRatedMovies($minYear: Int) {
+  peliculas(minYear: $minYear) {
+    id
+    titulo
+    fechaEstreno
+    director {
+      nombre
+    }
+    generos {
+      nombre
+    }
+  }
+}
+
+query GetGenres {
+  generos {
+    id
+    nombre
+  }
+}
+
+query GetPlatforms {
+  plataformas {
+    id
+    nombre
+    logoUrl
+  }
+}
+
+query GetPersonas($nombre: String) {
+  personas(nombre: $nombre) {
+    id
+    nombre
+    imagenUrl
+    genero
+  }
+}
+
+query GetMovie($id: Int!) {
+  pelicula(id: $id) {
+    id
+    titulo
+    sinopsis
+    duracionMinutos
+    fechaEstreno
+    posterUrl
+    director {
+      id
+      nombre
+      imagenUrl
+      genero
+    }
+    generos {
+      id
+      nombre
+    }
+    plataformas {
+      id
+      nombre
+      logoUrl
+    }
+    elenco {
+      personaje
+      orden
+      actor {
+        id
+        nombre
+        imagenUrl
+        genero
+      }
+    }
+  }
+}
