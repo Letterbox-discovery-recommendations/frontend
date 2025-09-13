@@ -3,6 +3,8 @@ name: CI/CD Frontend
 on:
   pull_request:
     branches: [ main ]
+  push:
+    branches: [ main ]
 
 jobs:
   ci:
@@ -15,7 +17,7 @@ jobs:
           cache: npm
       - name: Validate package-lock.json
         run: |
-          npm install --package-lock-only
+          npm install --package-lock-only --ignore-scripts
           git diff --exit-code package-lock.json
       - run: npm ci
       - run: npm run lint --if-present
@@ -33,6 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: ci
     environment: main-aws
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Download production build
         uses: actions/download-artifact@v4
