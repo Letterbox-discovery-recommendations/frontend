@@ -44,11 +44,18 @@ interface MovieProps {
 }
 
 const props = defineProps<MovieProps>();
+
+const modalStore = useModalStore();
+
+const openMovieModal = () => {
+  modalStore.openModal(props);
+};
 </script>
 
 <template>
   <div
-    class="flex h-[225px] w-[180px] flex-col justify-center rounded-md border border-gray-400/10 bg-[#445566] shadow-lg backdrop-blur-md"
+    class="flex h-[225px] w-[180px] cursor-pointer flex-col justify-center rounded-md border border-gray-400/10 bg-[#445566] shadow-lg backdrop-blur-md transition-shadow duration-200 hover:shadow-xl"
+    @click="openMovieModal"
   >
     <div class="w-full flex-1 overflow-hidden">
       <NuxtImg
