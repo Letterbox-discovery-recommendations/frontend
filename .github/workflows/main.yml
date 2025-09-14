@@ -22,7 +22,7 @@ jobs:
         run: yarn generate 
         env: 
           NUXT_BACKEND: ${{ secrets.NUXT_BACKEND }}
-          NUXT_PUBLIC_SITE_URL: ${{ secret.CLOUDFRONT_URL }}
+          NUXT_PUBLIC_SITE_URL: ${{ secrets.CLOUDFRONT_URL }}
       
       - name: Verify output
         run: test -d .output/public || (echo "Not found > .output/public" && exit 1)
