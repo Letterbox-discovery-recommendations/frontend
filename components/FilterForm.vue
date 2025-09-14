@@ -34,38 +34,45 @@ const estrenoItems = ref([
   "1800s",
 ]);
 
-const ratingItems = ref(["Alto a bajo", "Bajo a alto"]);
-
 const duracionItems = ref([
   "Más de 120 min",
   "Entre 90 y 120 min",
   "Menos de 90 min",
   "Cualquiera",
 ]);
+const sortItems = ref([
+  "titulo",
+  "titulo_desc",
+  "duracionMinutos",
+  "duracionMinutos_desc",
+  "fechaEstreno",
+  "fechaEstreno_desc",
+]);
 
+const selectedSort = ref();
 const selectedEstreno = ref();
 const selectedGenero = ref([]);
-const selectedRating = ref();
 const selectedDuracion = ref();
 const selectedPlataforma = ref([]);
 
 // Watch for changes in filter selections and automatically update store
 watch(
   [
+    selectedSort,
     selectedEstreno,
     selectedGenero,
-    selectedRating,
     selectedDuracion,
     selectedPlataforma,
   ],
   () => {
     filterStore.setFilters({
+      sort: selectedSort.value,
       genres: selectedGenero.value,
       estreno: selectedEstreno.value,
-      rating: selectedRating.value,
       duracion: selectedDuracion.value,
       plataforma: selectedPlataforma.value,
     });
+    console.log("Filters updated:", selectedEstreno.value);
   },
   { deep: true },
 );
@@ -75,9 +82,9 @@ defineExpose({
   // Method to manually trigger filter update if needed
   updateFilters: () => {
     filterStore.setFilters({
+      sort: selectedSort.value,
       genres: selectedGenero.value,
       estreno: selectedEstreno.value,
-      rating: selectedRating.value,
       duracion: selectedDuracion.value,
       plataforma: selectedPlataforma.value,
     });
@@ -93,9 +100,9 @@ const handleKeyDown = (event: KeyboardEvent) => {
 };
 
 const handleClear = () => {
+  selectedSort.value = null;
   selectedEstreno.value = null;
   selectedGenero.value = [];
-  selectedRating.value = null;
   selectedDuracion.value = null;
   selectedPlataforma.value = [];
 
@@ -120,11 +127,12 @@ const handleClear = () => {
       :items="generoItems"
       class="w-48"
     />
-
     <USelectMenu
-      v-model="selectedRating"
-      placeholder="Rating"
-      :items="ratingItems"
+      v-model="selectedSort"
+      placeholder="Ordenar por"
+      :items="sortItems"
+      value-attribute="value"
+      option-attribute="label"
       class="w-48"
     />
     <USelectMenu

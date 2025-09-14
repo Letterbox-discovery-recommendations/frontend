@@ -39,6 +39,7 @@ const variables = computed(() => {
     plataformas: filterStore.filters.plataforma.length
       ? filterStore.filters.plataforma
       : undefined,
+    sort: filterStore.filters.sort || undefined,
     minYear,
     maxYear,
   };
