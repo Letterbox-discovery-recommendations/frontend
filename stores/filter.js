@@ -4,7 +4,7 @@ export const useFilterStore = defineStore("filter", {
   state: () => ({
     filters: {
       genres: [],
-      estreno: [],
+      estreno: null,
       rating: null,
       duracion: null,
       plataforma: [],
@@ -17,7 +17,7 @@ export const useFilterStore = defineStore("filter", {
     clearFilters() {
       this.filters = {
         genres: [],
-        estreno: [],
+        estreno: null,
         rating: null,
         duracion: null,
         plataforma: [],

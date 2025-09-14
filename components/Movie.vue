@@ -1,9 +1,46 @@
 <script lang="ts" setup>
+interface Director {
+  id: number;
+  nombre: string;
+  imagenUrl?: string;
+  genero: number;
+}
+
+interface Genre {
+  id: number;
+  nombre: string;
+}
+
+interface Platform {
+  id: number;
+  nombre: string;
+  logoUrl?: string;
+}
+
+interface Actor {
+  id: number;
+  nombre: string;
+  imagenUrl?: string;
+  genero: number;
+}
+
+interface CastMember {
+  personaje: string;
+  orden: number;
+  actor: Actor;
+}
+
 interface MovieProps {
-  title: string;
-  src?: string;
-  views?: number;
-  likes?: number;
+  id: number;
+  titulo: string;
+  sinopsis?: string;
+  duracionMinutos?: number;
+  fechaEstreno?: string;
+  posterUrl?: string;
+  director?: Director;
+  generos?: Genre[];
+  plataformas?: Platform[];
+  elenco?: CastMember[];
 }
 
 const props = defineProps<MovieProps>();
@@ -16,13 +53,13 @@ const props = defineProps<MovieProps>();
     <div class="w-full flex-1 overflow-hidden">
       <NuxtImg
         class="img h-full w-full object-cover"
-        :src="props.src"
-        :alt="props.title"
+        :src="props.posterUrl"
+        :alt="props.titulo"
       />
     </div>
     <div class="flex h-auto items-center rounded-b-md bg-[#445566] p-2">
       <h1 class="font-oswald truncate text-sm font-bold text-[#AABBCC]">
-        {{ props.title.toUpperCase() }}
+        {{ props.titulo.toUpperCase() }}
       </h1>
     </div>
   </div>

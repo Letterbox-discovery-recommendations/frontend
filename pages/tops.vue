@@ -9,13 +9,13 @@ useSeoMeta({
   <div
     class="from-nav to-footer flex flex-col items-center space-y-16 bg-gradient-to-t p-12 px-4 md:px-16 lg:px-64"
   >
+    <MovieCarousel title="Top global" endpoint="global" class="w-full" />
+    <MovieCarousel title="Virales" endpoint="viral" class="w-full" />
+    <MovieCarousel title="Top por género" endpoint="genre" class="w-full" />
     <MovieCarousel
-      title="Movies by Platform"
-      :filter="true"
-      :filter-options="['Netflix', 'HBO', 'Amazon Prime', 'Disney+']"
+      title="Top por plataforma"
+      endpoint="platform"
       class="w-full"
     />
-    <MovieCarousel title="Mejores pelis" class="w-full" />
-    <MovieCarousel title="Mas vistas" class="w-full" />
   </div>
 </template>
