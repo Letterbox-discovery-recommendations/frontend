@@ -49,16 +49,47 @@ const selectedRating = ref();
 const selectedDuracion = ref();
 const selectedPlataforma = ref([]);
 
-const applyFilters = () => {
-  filterStore.setFilters({
-    genres: selectedGenero.value,
-    estreno: selectedEstreno.value,
-    rating: selectedRating.value,
-    duracion: selectedDuracion.value,
-    plataforma: selectedPlataforma.value,
-  });
+// Watch for changes in filter selections and automatically update store
+watch(
+  [
+    selectedEstreno,
+    selectedGenero,
+    selectedRating,
+    selectedDuracion,
+    selectedPlataforma,
+  ],
+  () => {
+    filterStore.setFilters({
+      genres: selectedGenero.value,
+      estreno: selectedEstreno.value,
+      rating: selectedRating.value,
+      duracion: selectedDuracion.value,
+      plataforma: selectedPlataforma.value,
+    });
+  },
+  { deep: true },
+);
 
-  console.log("Filters applied:", filterStore.filters);
+// Expose method for potential external use
+defineExpose({
+  // Method to manually trigger filter update if needed
+  updateFilters: () => {
+    filterStore.setFilters({
+      genres: selectedGenero.value,
+      estreno: selectedEstreno.value,
+      rating: selectedRating.value,
+      duracion: selectedDuracion.value,
+      plataforma: selectedPlataforma.value,
+    });
+  },
+});
+
+// Handle Enter key press on filter form (now just for consistency)
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (event.key === "Enter") {
+    // Since filters auto-update, Enter key doesn't need to do anything special
+    // But we can keep it for future functionality if needed
+  }
 };
 
 const handleClear = () => {
@@ -74,11 +105,11 @@ const handleClear = () => {
 </script>
 
 <template>
-  <div class="flex items-center gap-4">
+  <div class="flex items-center gap-4" @keydown="handleKeyDown">
     <h2 class="text-base font-bold text-white">FILTRAR POR</h2>
     <USelectMenu
       v-model="selectedEstreno"
-      placeholder="Estreno"
+      placeholder="Año de estreno"
       :items="estrenoItems"
       class="w-48"
     />
@@ -110,11 +141,6 @@ const handleClear = () => {
       class="w-48"
     />
 
-    <UButton
-      class="bg-red hover:bg-red/80 px-4 font-bold text-white"
-      label="APLICAR"
-      @click="applyFilters"
-    />
     <UButton
       class="bg-red hover:bg-red/80 px-4 font-bold text-white"
       label="LIMPIAR"

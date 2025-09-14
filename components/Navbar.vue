@@ -1,5 +1,52 @@
 <script setup lang="ts">
 const user = false;
+const searchStore = useSearchStore();
+const router = useRouter();
+const route = useRoute();
+
+// Local search input value
+const searchInput = ref(searchStore.search || "");
+
+// Sync input with store changes
+watch(
+  () => searchStore.search,
+  (newSearch) => {
+    searchInput.value = newSearch || "";
+  },
+);
+
+// Handle search submission
+const handleSearch = async () => {
+  if (searchInput.value.trim()) {
+    // Update search store
+    searchStore.setSearch(searchInput.value.trim());
+
+    // If ON films page, keep existing filters (like APLICAR button)
+    if (route.path === "/films") {
+      // Just update search, keep current filters - reactive query will handle it
+      // This mimics the APLICAR button behavior
+    } else {
+      // If NOT on films page, store is already updated with current selections
+      // Clear filters and navigate (search by name only)
+      const filterStore = useFilterStore();
+      filterStore.clearFilters();
+
+      await router.push({
+        path: "/films",
+        query: { search: searchInput.value.trim() },
+      });
+    }
+  } else {
+    // If search is empty
+    if (route.path === "/films") {
+      // Clear search but keep filters (like APLICAR with no search)
+      searchStore.clearSearch();
+    } else {
+      // Not on films page with empty search - navigate to films
+      await router.push("/films");
+    }
+  }
+};
 
 const links = [
   {
@@ -82,11 +129,13 @@ const linksUser = [
         </UButton>
       </UTooltip>
       <UInput
+        v-model="searchInput"
         size="lg"
         trailing-icon="i-lucide-search"
         color="info"
         variant="subtle"
         placeholder="Busca una película..."
+        @keyup.enter="handleSearch"
       />
       <UButton
         v-if="user"

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 const filterStore = useFilterStore();
+const searchStore = useSearchStore();
 
-// Pagination setup
+// Paginatipon setup
 const route = useRoute();
 const router = useRouter();
 const page = ref(parseInt(route.query.page as string) || 1);
@@ -19,6 +20,7 @@ const variables = computed(() => {
   }
 
   return {
+    titulo: searchStore.search || undefined, // Add search parameter
     generos: filterStore.filters.genres.length
       ? filterStore.filters.genres
       : undefined,
@@ -47,45 +49,54 @@ const { data } = await useAsyncGql({
   variables: variables,
 });
 
+// Sync search with URL params
+onMounted(() => {
+  const searchQuery = route.query.search as string;
+  if (searchQuery && searchQuery !== searchStore.search) {
+    searchStore.setSearch(searchQuery);
+  }
+});
+
+// Watch for search changes and update URL
+watch(
+  () => searchStore.search,
+  (newSearch) => {
+    const query = { ...route.query };
+    if (newSearch) {
+      query.search = newSearch;
+    } else {
+      delete query.search;
+    }
+    router.push({ query });
+  },
+);
+
 const allMovies = computed(() => data.value?.peliculas || []);
 
 // Pagination calculations
 const totalMovies = computed(() => {
-  const count = allMovies.value.length;
-  const expectedPages = Math.ceil(count / moviesPerPage);
-  console.log("=== PAGINATION DEBUG ===");
-  console.log("Total movies:", count);
-  console.log("Movies per page:", moviesPerPage);
-  console.log("Expected pages:", expectedPages);
-  console.log("========================");
-  return count;
+  return allMovies.value.length;
 });
 
 const paginatedMovies = computed(() => {
   const start = (page.value - 1) * moviesPerPage;
   const end = start + moviesPerPage;
-  const sliced = allMovies.value.slice(start, end);
-  console.log(
-    "Page:",
-    page.value,
-    "Start:",
-    start,
-    "End:",
-    end,
-    "Movies on page:",
-    sliced.length,
-  );
-  return sliced;
+  return allMovies.value.slice(start, end);
 });
 
 // Navigation function for pagination
 function to(pageNumber: number) {
-  return {
-    query: {
-      ...route.query,
-      page: pageNumber,
-    },
+  const query: Record<string, string | number> = {
+    ...route.query,
+    page: pageNumber,
   };
+
+  // Preserve search parameter
+  if (searchStore.search) {
+    query.search = searchStore.search;
+  }
+
+  return { query };
 }
 
 // Reset to page 1 when filters change
@@ -120,9 +131,13 @@ useSeoMeta({
 
     <div class="container mx-auto px-4 py-8">
       <!-- Movies count -->
-      <div class="mb-6 text-center">
+      <div class="mb-6 flex flex-col items-center justify-center text-center">
         <p class="text-gray-400">
           Mostrando {{ paginatedMovies.length }} de {{ totalMovies }} películas
+        </p>
+        <!-- Search term display -->
+        <p v-if="searchStore.search" class="mt-2 text-base text-gray-400">
+          Búsqueda: "{{ searchStore.search }}"
         </p>
       </div>
 
