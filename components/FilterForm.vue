@@ -1,8 +1,20 @@
 <script setup lang="ts">
 const filterStore = useFilterStore();
 
-const { data } = useAsyncGql({
+const { data: genres } = useAsyncGql({
   operation: "GetGenres",
+});
+
+const { data: platforms } = useAsyncGql({
+  operation: "GetPlatforms",
+});
+
+const generoItems = computed(() => {
+  return genres.value?.generos?.map((genre) => genre.nombre) || [];
+});
+
+const plataformaItems = computed(() => {
+  return platforms.value?.plataformas?.map((platform) => platform.nombre) || [];
 });
 
 const estrenoItems = ref([
@@ -22,18 +34,6 @@ const estrenoItems = ref([
   "1800s",
 ]);
 
-const generoItems = ref<string[]>([]);
-
-watch(
-  () => data.value,
-  (newData) => {
-    if (newData && newData.generos) {
-      generoItems.value = newData.generos.map((genre: { nombre: string }) => genre.nombre);
-    }
-  },
-  { immediate: true }
-);
-
 const ratingItems = ref(["Alto a bajo", "Bajo a alto"]);
 
 const duracionItems = ref([
@@ -43,9 +43,7 @@ const duracionItems = ref([
   "Cualquiera",
 ]);
 
-const plataformaItems = ref(["Netflix", "HBO", "Prime", "Disney+"]);
-
-const selectedEstreno = ref([]);
+const selectedEstreno = ref();
 const selectedGenero = ref([]);
 const selectedRating = ref();
 const selectedDuracion = ref();
@@ -62,6 +60,17 @@ const applyFilters = () => {
 
   console.log("Filters applied:", filterStore.filters);
 };
+
+const handleClear = () => {
+  selectedEstreno.value = null;
+  selectedGenero.value = [];
+  selectedRating.value = null;
+  selectedDuracion.value = null;
+  selectedPlataforma.value = [];
+
+  filterStore.clearFilters();
+  console.log("Filters cleared");
+};
 </script>
 
 <template>
@@ -70,12 +79,10 @@ const applyFilters = () => {
     <USelectMenu
       v-model="selectedEstreno"
       placeholder="Estreno"
-      multiple
       :items="estrenoItems"
       class="w-48"
     />
     <USelectMenu
-      v-if="data && data.generos"
       v-model="selectedGenero"
       placeholder="Género"
       multiple
@@ -107,6 +114,11 @@ const applyFilters = () => {
       class="bg-red hover:bg-red/80 px-4 font-bold text-white"
       label="APLICAR"
       @click="applyFilters"
+    />
+    <UButton
+      class="bg-red hover:bg-red/80 px-4 font-bold text-white"
+      label="LIMPIAR"
+      @click="handleClear"
     />
   </div>
 </template>
