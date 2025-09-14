@@ -6,6 +6,7 @@ query GetMovies(
   $maxDuration: Int
   $minYear: Int
   $maxYear: Int
+  $sort: String
 ) {
   peliculas(
     titulo: $titulo
@@ -15,38 +16,12 @@ query GetMovies(
     maxDuration: $maxDuration
     minYear: $minYear
     maxYear: $maxYear
+    sort: $sort
   ) {
     id
     titulo
-    sinopsis
-    duracionMinutos
-    fechaEstreno
+
     posterUrl
-    director {
-      id
-      nombre
-      imagenUrl
-      genero
-    }
-    generos {
-      id
-      nombre
-    }
-    plataformas {
-      id
-      nombre
-      logoUrl
-    }
-    elenco {
-      personaje
-      orden
-      actor {
-        id
-        nombre
-        imagenUrl
-        genero
-      }
-    }
   }
 }
 
