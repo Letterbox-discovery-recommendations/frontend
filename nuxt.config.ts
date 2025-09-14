@@ -13,6 +13,12 @@ export default defineNuxtConfig({
   ],
   css: ["~/main.css"],
 
+  nitro: {
+    prerender: {
+      failOnError: false
+    }
+  },
+
   runtimeConfig: {
     public: {
       GQL_HOST: process.env.NUXT_BACKEND,
