@@ -3,21 +3,27 @@ name: CI/CD Frontend
 on:
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
   push:
     branches: [ main ]
 
 jobs:
   ci:
     runs-on: ubuntu-latest
+    environment: main-aws
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npm run lint --if-present
-      - run: npm run generate
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - name: Build file
+        run: yarn generate 
+        env: 
+          NUXT_BACKEND: ${{ secrets.NUXT_BACKEND }}
+          NUXT_PUBLIC_SITE_URL: ${{ secrets.CLOUDFRONT_URL }}
+      
       - name: Verify output
         run: test -d .output/public || (echo "Not found > .output/public" && exit 1)
       - name: Upload production build
@@ -31,6 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: ci
     environment: main-aws
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Download production build
         uses: actions/download-artifact@v4

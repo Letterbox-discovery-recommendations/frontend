@@ -2,13 +2,25 @@
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/ui", "@nuxt/eslint", "@nuxt/image"],
+  modules: [
+    "@nuxt/ui",
+    "@nuxt/eslint",
+    "@nuxt/image",
+    "@nuxtjs/seo",
+    "@pinia/nuxt",
+    "nuxt-graphql-client",
+  ],
   css: ["~/main.css"],
 
-  // No es buena practica, necesario para correr el CI provisoriamente hasta tener las rutas enlazadas.
   nitro: {
     prerender: {
       failOnError: false
     }
-  }
+  },
+
+  runtimeConfig: {
+    public: {
+      GQL_HOST: process.env.NUXT_BACKEND,
+    },
+  },
 });
