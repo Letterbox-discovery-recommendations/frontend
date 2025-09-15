@@ -34,37 +34,75 @@ const estrenoItems = ref([
   "1800s",
 ]);
 
-const ratingItems = ref(["Alto a bajo", "Bajo a alto"]);
-
 const duracionItems = ref([
   "Más de 120 min",
   "Entre 90 y 120 min",
   "Menos de 90 min",
   "Cualquiera",
 ]);
+const sortItems = ref([
+  "titulo",
+  "titulo_desc",
+  "duracionMinutos",
+  "duracionMinutos_desc",
+  "fechaEstreno",
+  "fechaEstreno_desc",
+]);
 
+const selectedSort = ref();
 const selectedEstreno = ref();
 const selectedGenero = ref([]);
-const selectedRating = ref();
 const selectedDuracion = ref();
 const selectedPlataforma = ref([]);
 
-const applyFilters = () => {
-  filterStore.setFilters({
-    genres: selectedGenero.value,
-    estreno: selectedEstreno.value,
-    rating: selectedRating.value,
-    duracion: selectedDuracion.value,
-    plataforma: selectedPlataforma.value,
-  });
+// Watch for changes in filter selections and automatically update store
+watch(
+  [
+    selectedSort,
+    selectedEstreno,
+    selectedGenero,
+    selectedDuracion,
+    selectedPlataforma,
+  ],
+  () => {
+    filterStore.setFilters({
+      sort: selectedSort.value,
+      genres: selectedGenero.value,
+      estreno: selectedEstreno.value,
+      duracion: selectedDuracion.value,
+      plataforma: selectedPlataforma.value,
+    });
+    console.log("Filters updated:", selectedEstreno.value);
+  },
+  { deep: true },
+);
 
-  console.log("Filters applied:", filterStore.filters);
+// Expose method for potential external use
+defineExpose({
+  // Method to manually trigger filter update if needed
+  updateFilters: () => {
+    filterStore.setFilters({
+      sort: selectedSort.value,
+      genres: selectedGenero.value,
+      estreno: selectedEstreno.value,
+      duracion: selectedDuracion.value,
+      plataforma: selectedPlataforma.value,
+    });
+  },
+});
+
+// Handle Enter key press on filter form (now just for consistency)
+const handleKeyDown = (event: KeyboardEvent) => {
+  if (event.key === "Enter") {
+    // Since filters auto-update, Enter key doesn't need to do anything special
+    // But we can keep it for future functionality if needed
+  }
 };
 
 const handleClear = () => {
+  selectedSort.value = null;
   selectedEstreno.value = null;
   selectedGenero.value = [];
-  selectedRating.value = null;
   selectedDuracion.value = null;
   selectedPlataforma.value = [];
 
@@ -74,11 +112,11 @@ const handleClear = () => {
 </script>
 
 <template>
-  <div class="flex items-center gap-4">
+  <div class="flex items-center gap-4" @keydown="handleKeyDown">
     <h2 class="text-base font-bold text-white">FILTRAR POR</h2>
     <USelectMenu
       v-model="selectedEstreno"
-      placeholder="Estreno"
+      placeholder="Año de estreno"
       :items="estrenoItems"
       class="w-48"
     />
@@ -90,12 +128,6 @@ const handleClear = () => {
       class="w-48"
     />
 
-    <USelectMenu
-      v-model="selectedRating"
-      placeholder="Rating"
-      :items="ratingItems"
-      class="w-48"
-    />
     <USelectMenu
       v-model="selectedDuracion"
       placeholder="Duración"
@@ -109,11 +141,13 @@ const handleClear = () => {
       :items="plataformaItems"
       class="w-48"
     />
-
-    <UButton
-      class="bg-red hover:bg-red/80 px-4 font-bold text-white"
-      label="APLICAR"
-      @click="applyFilters"
+    <USelectMenu
+      v-model="selectedSort"
+      placeholder="Ordenar por"
+      :items="sortItems"
+      value-attribute="value"
+      option-attribute="label"
+      class="w-48"
     />
     <UButton
       class="bg-red hover:bg-red/80 px-4 font-bold text-white"

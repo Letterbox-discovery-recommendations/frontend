@@ -17,6 +17,8 @@ interface MovieCarouselProps {
 
 const props = defineProps<MovieCarouselProps>();
 
+const authStore = useAuthStore();
+
 const value = ref("");
 
 const { data: genres } = await useAsyncGql({
@@ -45,6 +47,7 @@ watchEffect(() => {
 });
 
 const movies = ref<(Movie | RecommendationItem)[]>([]);
+const isLoading = ref(false);
 
 const getMovieData = (item: Movie | RecommendationItem): Movie => {
   if ("movie" in item) {
@@ -71,38 +74,50 @@ const updateId = () => {
 
 updateId();
 
-watch(value, () => {
-  updateId();
-  if (
-    props.endpoint &&
-    (props.endpoint === "genre" || props.endpoint === "platform")
-  ) {
-    $fetch(
-      "http://localhost:8000/api/v1/rankings/" +
-        props.endpoint +
-        "/" +
-        id.value,
-    ).then((data) => {
-      movies.value = data as (Movie | RecommendationItem)[];
-    });
-  }
-});
-
-onMounted(async () => {
+const fetchMovies = async () => {
   if (!props.endpoint) {
     return;
   }
-  if (props.endpoint == "genre" || props.endpoint == "platform") {
-    movies.value = await $fetch(
-      "http://localhost:8000/api/v1/rankings/" +
-        props.endpoint +
-        "/" +
-        id.value,
-    );
+
+  isLoading.value = true;
+  const config = useRuntimeConfig();
+  const baseUrl = config.public.backendUrl;
+
+  try {
+    if (props.endpoint === "genre" || props.endpoint === "platform") {
+      movies.value = await $fetch(
+        `${baseUrl}/api/v1/rankings/${props.endpoint}/${id.value}`,
+      );
+    } else if (props.endpoint === "content") {
+      movies.value = await $fetch(
+        `${baseUrl}/api/v1/recommendations/content/${authStore.userId}`,
+      );
+    } else if (props.endpoint === "collaborative") {
+      movies.value = await $fetch(
+        `${baseUrl}/api/v1/recommendations/collaborative/${authStore.userId}`,
+      );
+    } else {
+      movies.value = await $fetch(
+        `${baseUrl}/api/v1/rankings/${props.endpoint}`,
+      );
+    }
+  } catch (error) {
+    console.error("Error fetching movies:", error);
+    movies.value = [];
+  } finally {
+    isLoading.value = false;
   }
-  movies.value = await $fetch(
-    "http://localhost:8000/api/v1/rankings/" + props.endpoint,
-  );
+};
+
+watch(value, () => {
+  updateId();
+  if (props.endpoint === "genre" || props.endpoint === "platform") {
+    fetchMovies();
+  }
+});
+
+onMounted(() => {
+  fetchMovies();
 });
 </script>
 <template>
@@ -119,7 +134,24 @@ onMounted(async () => {
       />
     </div>
     <USeparator />
+
+    <!-- Loading skeleton -->
+    <div v-if="isLoading" class="flex gap-4 overflow-hidden">
+      <div
+        v-for="n in 5"
+        :key="n"
+        class="flex min-w-0 flex-shrink-0 flex-col gap-2"
+        style="flex-basis: 20%"
+      >
+        <USkeleton class="aspect-[2/3] w-full rounded-lg" />
+        <USkeleton class="h-4 w-3/4" />
+        <USkeleton class="h-3 w-1/2" />
+      </div>
+    </div>
+
+    <!-- Movie carousel -->
     <UCarousel
+      v-else
       v-slot="{ item }"
       arrows
       :items="movies"

@@ -4,8 +4,8 @@ export const useFilterStore = defineStore("filter", {
   state: () => ({
     filters: {
       genres: [],
+      sort: null,
       estreno: null,
-      rating: null,
       duracion: null,
       plataforma: [],
     },
@@ -18,8 +18,8 @@ export const useFilterStore = defineStore("filter", {
       this.filters = {
         genres: [],
         estreno: null,
-        rating: null,
         duracion: null,
+        sort: null,
         plataforma: [],
       };
     },
@@ -27,12 +27,11 @@ export const useFilterStore = defineStore("filter", {
   getters: {
     hasGenreFilters: (state) =>
       state.filters.genres && state.filters.genres.length > 0,
-    hasRatingFilter: (state) => state.filters.rating !== null,
     hasDurationFilter: (state) => state.filters.duracion !== null,
     hasAnyFilters: (state) => {
       return (
         (state.filters.genres && state.filters.genres.length > 0) ||
-        state.filters.rating !== null ||
+        state.filters.sort !== null ||
         state.filters.duracion !== null
       );
     },
