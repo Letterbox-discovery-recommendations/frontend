@@ -1,4 +1,63 @@
 <script setup lang="ts">
+interface Director {
+  id: number;
+  nombre: string;
+  imagenUrl?: string;
+  genero: number;
+}
+
+interface Genre {
+  id: number;
+  nombre: string;
+}
+
+interface Platform {
+  id: number;
+  nombre: string;
+  logoUrl?: string;
+}
+
+interface Actor {
+  id: number;
+  nombre: string;
+  imagenUrl?: string;
+  genero: number;
+}
+
+interface CastMember {
+  personaje: string;
+  orden: number;
+  actor: Actor;
+}
+
+interface MovieProps {
+  id: number;
+  titulo: string;
+  sinopsis?: string;
+  duracionMinutos?: number;
+  fechaEstreno?: string;
+  posterUrl?: string;
+  director?: Director;
+  generos?: Genre[];
+  plataformas?: Platform[];
+  elenco?: CastMember[];
+}
+
+interface Movie {
+  id: number;
+  titulo: string;
+  posterUrl?: string;
+}
+
+interface RecommendationItem {
+  movie: Movie;
+  score: number;
+}
+
+const movieProps = defineProps<MovieProps>();
+const modalStore = useModalStore();
+const { isOpen, selectedMovie } = storeToRefs(modalStore);
+
 const searchStore = useSearchStore();
 const router = useRouter();
 const route = useRoute();
@@ -53,6 +112,42 @@ const handleSearch = async () => {
       // Not on films page with empty search - navigate to films
       await router.push("/films");
     }
+  }
+};
+
+const handleQueVeoHoy = async () => {
+  try {
+    const config = useRuntimeConfig();
+    const baseUrl = config.public.backendUrl;
+
+    // Fetch collaborative recommendations
+    const recommendations = await $fetch<(Movie | RecommendationItem)[]>(
+      `${baseUrl}/api/v1/recommendations/collaborative/${authStore.userId}`,
+    );
+
+    if (recommendations && recommendations.length > 0) {
+      // Get a random recommendation instead of the first one
+      const randomIndex = Math.floor(Math.random() * recommendations.length);
+      const randomRecommendation = recommendations[randomIndex];
+
+      if (randomRecommendation) {
+        // Extract movie data (handle both Movie and RecommendationItem structures)
+        const movieData =
+          "movie" in randomRecommendation
+            ? randomRecommendation.movie
+            : randomRecommendation;
+
+        // Open modal with the movie
+        modalStore.openModal(movieData);
+      }
+    } else {
+      // Handle case where no recommendations are available
+      console.log("No hay recomendaciones disponibles");
+      // You could show a toast notification here
+    }
+  } catch (error) {
+    console.error("Error fetching recommendation:", error);
+    // You could show an error toast here
   }
 };
 
@@ -119,6 +214,11 @@ const linksUser = [
           <UIcon name="i-lucide-gamepad-2" class="size-7 text-white" />
         </UButton>
       </UTooltip>
+
+      <UButton v-if="authStore.userId" @click="handleQueVeoHoy">
+        ¿QUÉ VEO HOY?
+      </UButton>
+
       <UInput
         v-model="searchInput"
         size="lg"
