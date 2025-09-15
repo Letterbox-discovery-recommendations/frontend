@@ -1,10 +1,17 @@
 <script setup lang="ts">
-const user = false;
 const searchStore = useSearchStore();
 const router = useRouter();
 const route = useRoute();
 
-// Local search input value
+const authStore = useAuthStore();
+
+const handleLogin = () => {
+  const userId = prompt(
+    "Ingrese su ID de usuario para simular el inicio de sesión:",
+  );
+  authStore.login(userId);
+};
+
 const searchInput = ref(searchStore.search || "");
 
 // Sync input with store changes
@@ -50,29 +57,14 @@ const handleSearch = async () => {
 
 const links = [
   {
-    text: "USUARIO",
-    url: "/user",
-    tooltip: "Ir a mi perfil",
-  },
-  {
     text: "FILMS",
     url: "/films",
     tooltip: "Ver y filtrar películas",
   },
   {
-    text: "¿QUÉ VEO HOY?",
-    url: "/films",
-    tooltip: "Descubrí qué ver hoy",
-  },
-  {
     text: "TOPS",
     url: "/tops",
     tooltip: "Ver las películas más populares",
-  },
-  {
-    text: "CRÍTICAS POPULARES",
-    url: "/criticas",
-    tooltip: "Ver las críticas más populares",
   },
 ];
 
@@ -86,11 +78,6 @@ const linksUser = [
     text: "TOPS",
     url: "/tops",
     tooltip: "Ver las películas más populares",
-  },
-  {
-    text: "CRÍTICAS POPULARES",
-    url: "/criticas",
-    tooltip: "Ver las críticas más populares",
   },
 ];
 </script>
@@ -106,11 +93,14 @@ const linksUser = [
     </NuxtLink>
 
     <div class="flex items-center gap-8">
-      <UButton v-if="!user" class="bg-red hover:bg-red/80 font-bold text-white"
+      <UButton
+        v-if="!authStore.userId"
+        class="bg-red hover:bg-red/80 font-bold text-white"
+        @click="handleLogin"
         >INICIAR SESIÓN</UButton
       >
       <UTooltip
-        v-for="link in user ? links : linksUser"
+        v-for="link in authStore.userId ? links : linksUser"
         :key="link.url"
         :text="link.tooltip"
       >
@@ -138,9 +128,10 @@ const linksUser = [
         @keyup.enter="handleSearch"
       />
       <UButton
-        v-if="user"
+        v-if="authStore.userId"
         class="bg-teal hover:bg-teal/80 font-bold text-black"
         icon="i-lucide-log-out"
+        @click="authStore.logout()"
       />
     </div>
   </div>

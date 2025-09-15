@@ -3,8 +3,44 @@ useSeoMeta({
   title: "cineTrack - Inicio",
   description: "Descubrí las mejores películas.",
 });
+
+const authStore = useAuthStore();
+
+const handleLogin = () => {
+  const userId = prompt(
+    "Ingrese su ID de usuario para simular el inicio de sesión:",
+  );
+  authStore.login(userId);
+};
 </script>
 
 <template>
-  <div class="from-nav to-footer min-h-screen bg-gradient-to-t py-8">Index</div>
+  <div
+    class="from-nav to-footer flex min-h-screen flex-col items-center space-y-16 bg-gradient-to-t p-12 px-4 md:px-16 lg:px-64"
+  >
+    <div
+      class="relative flex h-96 w-full items-center justify-center overflow-hidden rounded-lg bg-cover bg-center bg-no-repeat opacity-85"
+      style="background-image: url(&quot;/images/banner.png&quot;)"
+    >
+      <div class="absolute inset-0 bg-black/50" />
+
+      <div class="relative z-10 max-w-4xl px-6 text-center">
+        <h1 class="mb-6 text-4xl font-bold text-white md:text-5xl lg:text-6xl">
+          Bienvenido a cineTrack
+        </h1>
+        <p class="mb-8 text-xl font-semibold text-white">
+          Inicia sesión para disfrutar la experiencia completa
+        </p>
+        <UButton
+          class="bg-red px-8 py-3 text-lg font-bold text-white"
+          @click="handleLogin"
+        >
+          Iniciar Sesión
+        </UButton>
+      </div>
+    </div>
+
+    <MovieCarousel title="Top global" endpoint="global" class="w-full" />
+    <MovieCarousel title="Virales" endpoint="viral" class="w-full" />
+  </div>
 </template>
