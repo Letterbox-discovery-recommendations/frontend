@@ -47,6 +47,7 @@ watchEffect(() => {
 });
 
 const movies = ref<(Movie | RecommendationItem)[]>([]);
+const isLoading = ref(false);
 
 const getMovieData = (item: Movie | RecommendationItem): Movie => {
   if ("movie" in item) {
@@ -78,6 +79,7 @@ const fetchMovies = async () => {
     return;
   }
 
+  isLoading.value = true;
   const config = useRuntimeConfig();
   const baseUrl = config.public.backendUrl;
 
@@ -102,6 +104,8 @@ const fetchMovies = async () => {
   } catch (error) {
     console.error("Error fetching movies:", error);
     movies.value = [];
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -130,7 +134,24 @@ onMounted(() => {
       />
     </div>
     <USeparator />
+
+    <!-- Loading skeleton -->
+    <div v-if="isLoading" class="flex gap-4 overflow-hidden">
+      <div
+        v-for="n in 5"
+        :key="n"
+        class="flex min-w-0 flex-shrink-0 flex-col gap-2"
+        style="flex-basis: 20%"
+      >
+        <USkeleton class="aspect-[2/3] w-full rounded-lg" />
+        <USkeleton class="h-4 w-3/4" />
+        <USkeleton class="h-3 w-1/2" />
+      </div>
+    </div>
+
+    <!-- Movie carousel -->
     <UCarousel
+      v-else
       v-slot="{ item }"
       arrows
       :items="movies"

@@ -43,7 +43,7 @@ interface Movie {
   generos?: Genre[];
   plataformas?: Platform[];
   elenco?: CastMember[];
-  rating?: number;
+  ratingPelicula?: number;
 }
 
 const modalStore = useModalStore();
@@ -58,7 +58,6 @@ const closeModal = () => {
   movieData.value = null;
 };
 
-// Watcher para cargar datos completos cuando se selecciona una película
 watch(selectedMovie, async (newMovie) => {
   if (newMovie && (newMovie as any).id) {
     loading.value = true;
@@ -79,7 +78,6 @@ watch(selectedMovie, async (newMovie) => {
   }
 });
 
-// Cerrar modal con tecla Escape
 onMounted(() => {
   const handleEscape = (e: KeyboardEvent) => {
     if (e.key === "Escape" && isOpen.value) {
@@ -99,7 +97,6 @@ const formatGenres = (genres?: Genre[]) => {
   return genres.map((g) => g.nombre).join(", ");
 };
 
-// Formatear año de estreno
 const formatYear = (fecha?: string) => {
   if (!fecha) return "";
   return new Date(fecha).getFullYear();
@@ -117,10 +114,9 @@ const formatYear = (fecha?: string) => {
         <div
           class="relative mx-4 w-full max-w-4xl overflow-hidden rounded-lg border border-gray-600/30 bg-[#334455] shadow-2xl"
         >
-          <!-- Botón de cerrar -->
           <button
-            @click="closeModal"
             class="absolute top-4 left-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
+            @click="closeModal"
           >
             <svg
               class="h-5 w-5"
@@ -182,7 +178,7 @@ const formatYear = (fecha?: string) => {
                     :key="star"
                     class="mr-1 text-xl"
                     :class="
-                      star <= Math.floor(movieData?.rating || 0)
+                      star <= Math.floor(movieData?.ratingPelicula || 0)
                         ? 'text-yellow-400'
                         : 'text-gray-600'
                     "
@@ -236,25 +232,6 @@ const formatYear = (fecha?: string) => {
                   >
                     {{ plataforma.nombre }}
                   </span>
-                </div>
-              </div>
-
-              <!-- Películas similares (título) -->
-              <div class="border-t border-gray-600 pt-4">
-                <h3
-                  class="mb-3 text-sm font-semibold tracking-wide text-gray-300 uppercase"
-                >
-                  Films similares
-                </h3>
-                <!-- Aquí podrías añadir un carrusel de películas similares -->
-                <div class="flex gap-2">
-                  <div
-                    v-for="n in 5"
-                    :key="n"
-                    class="h-16 w-12 flex-shrink-0 rounded bg-gray-700"
-                  >
-                    <!-- Placeholder para películas similares -->
-                  </div>
                 </div>
               </div>
             </div>

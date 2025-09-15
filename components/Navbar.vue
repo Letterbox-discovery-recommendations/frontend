@@ -2,6 +2,7 @@
 const searchStore = useSearchStore();
 const router = useRouter();
 const route = useRoute();
+const juego = false;
 
 const authStore = useAuthStore();
 
@@ -111,7 +112,7 @@ const linksUser = [
           {{ link.text }}
         </NuxtLink>
       </UTooltip>
-      <UTooltip text="Juego">
+      <UTooltip v-if="juego" text="Juego">
         <UButton
           class="bg-red hover:bg-red/80 cursor-pointer rounded-full p-2 transition"
         >
