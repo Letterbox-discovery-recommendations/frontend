@@ -3,5 +3,6 @@
     <Navbar />
     <NuxtPage />
     <Footer />
+    <MovieModal />
   </UApp>
 </template>
