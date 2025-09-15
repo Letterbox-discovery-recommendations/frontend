@@ -19,6 +19,7 @@ const handleLogin = () => {
     class="from-nav to-footer flex min-h-screen flex-col items-center space-y-16 bg-gradient-to-t p-12 px-4 md:px-16 lg:px-64"
   >
     <div
+      v-if="!authStore.userId"
       class="relative flex h-96 w-full items-center justify-center overflow-hidden rounded-lg bg-cover bg-center bg-no-repeat opacity-85"
       style="background-image: url(&quot;/images/banner.png&quot;)"
     >
@@ -39,7 +40,18 @@ const handleLogin = () => {
         </UButton>
       </div>
     </div>
-
+    <MovieCarousel
+      v-if="authStore.userId"
+      title="A usuarios como vos les gustó"
+      endpoint="collaborative"
+      class="w-full"
+    />
+    <MovieCarousel
+      v-if="authStore.userId"
+      title="Recomendaciones para vos"
+      endpoint="content"
+      class="w-full"
+    />
     <MovieCarousel title="Top global" endpoint="global" class="w-full" />
     <MovieCarousel title="Virales" endpoint="viral" class="w-full" />
   </div>

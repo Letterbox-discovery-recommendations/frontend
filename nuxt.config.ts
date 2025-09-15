@@ -20,7 +20,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      GQL_HOST: process.env.NUXT_BACKEND,
+      GQL_HOST: process.env.NUXT_GRAPHQL_BACKEND,
+      backendUrl: process.env.NUXT_BACKEND,
     },
   },
 });

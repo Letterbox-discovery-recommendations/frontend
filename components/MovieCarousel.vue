@@ -17,6 +17,8 @@ interface MovieCarouselProps {
 
 const props = defineProps<MovieCarouselProps>();
 
+const authStore = useAuthStore();
+
 const value = ref("");
 
 const { data: genres } = await useAsyncGql({
@@ -71,38 +73,47 @@ const updateId = () => {
 
 updateId();
 
-watch(value, () => {
-  updateId();
-  if (
-    props.endpoint &&
-    (props.endpoint === "genre" || props.endpoint === "platform")
-  ) {
-    $fetch(
-      "http://localhost:8000/api/v1/rankings/" +
-        props.endpoint +
-        "/" +
-        id.value,
-    ).then((data) => {
-      movies.value = data as (Movie | RecommendationItem)[];
-    });
-  }
-});
-
-onMounted(async () => {
+const fetchMovies = async () => {
   if (!props.endpoint) {
     return;
   }
-  if (props.endpoint == "genre" || props.endpoint == "platform") {
-    movies.value = await $fetch(
-      "http://localhost:8000/api/v1/rankings/" +
-        props.endpoint +
-        "/" +
-        id.value,
-    );
+
+  const config = useRuntimeConfig();
+  const baseUrl = config.public.backendUrl;
+
+  try {
+    if (props.endpoint === "genre" || props.endpoint === "platform") {
+      movies.value = await $fetch(
+        `${baseUrl}/api/v1/rankings/${props.endpoint}/${id.value}`,
+      );
+    } else if (props.endpoint === "content") {
+      movies.value = await $fetch(
+        `${baseUrl}/api/v1/recommendations/content/${authStore.userId}`,
+      );
+    } else if (props.endpoint === "collaborative") {
+      movies.value = await $fetch(
+        `${baseUrl}/api/v1/recommendations/collaborative/${authStore.userId}`,
+      );
+    } else {
+      movies.value = await $fetch(
+        `${baseUrl}/api/v1/rankings/${props.endpoint}`,
+      );
+    }
+  } catch (error) {
+    console.error("Error fetching movies:", error);
+    movies.value = [];
   }
-  movies.value = await $fetch(
-    "http://localhost:8000/api/v1/rankings/" + props.endpoint,
-  );
+};
+
+watch(value, () => {
+  updateId();
+  if (props.endpoint === "genre" || props.endpoint === "platform") {
+    fetchMovies();
+  }
+});
+
+onMounted(() => {
+  fetchMovies();
 });
 </script>
 <template>
