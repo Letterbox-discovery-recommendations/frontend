@@ -127,14 +127,7 @@ const handleClear = () => {
       :items="generoItems"
       class="w-48"
     />
-    <USelectMenu
-      v-model="selectedSort"
-      placeholder="Ordenar por"
-      :items="sortItems"
-      value-attribute="value"
-      option-attribute="label"
-      class="w-48"
-    />
+
     <USelectMenu
       v-model="selectedDuracion"
       placeholder="Duración"
@@ -148,7 +141,14 @@ const handleClear = () => {
       :items="plataformaItems"
       class="w-48"
     />
-
+    <USelectMenu
+      v-model="selectedSort"
+      placeholder="Ordenar por"
+      :items="sortItems"
+      value-attribute="value"
+      option-attribute="label"
+      class="w-48"
+    />
     <UButton
       class="bg-red hover:bg-red/80 px-4 font-bold text-white"
       label="LIMPIAR"

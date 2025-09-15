@@ -84,6 +84,7 @@ query GetMovie($id: Int!) {
     duracionMinutos
     fechaEstreno
     posterUrl
+    ratingPelicula
     director {
       id
       nombre

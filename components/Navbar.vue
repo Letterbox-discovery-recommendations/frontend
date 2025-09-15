@@ -1,10 +1,77 @@
 <script setup lang="ts">
-const user = false;
+interface Director {
+  id: number;
+  nombre: string;
+  imagenUrl?: string;
+  genero: number;
+}
+
+interface Genre {
+  id: number;
+  nombre: string;
+}
+
+interface Platform {
+  id: number;
+  nombre: string;
+  logoUrl?: string;
+}
+
+interface Actor {
+  id: number;
+  nombre: string;
+  imagenUrl?: string;
+  genero: number;
+}
+
+interface CastMember {
+  personaje: string;
+  orden: number;
+  actor: Actor;
+}
+
+interface MovieProps {
+  id: number;
+  titulo: string;
+  sinopsis?: string;
+  duracionMinutos?: number;
+  fechaEstreno?: string;
+  posterUrl?: string;
+  director?: Director;
+  generos?: Genre[];
+  plataformas?: Platform[];
+  elenco?: CastMember[];
+}
+
+interface Movie {
+  id: number;
+  titulo: string;
+  posterUrl?: string;
+}
+
+interface RecommendationItem {
+  movie: Movie;
+  score: number;
+}
+
+const movieProps = defineProps<MovieProps>();
+const modalStore = useModalStore();
+const { isOpen, selectedMovie } = storeToRefs(modalStore);
+
 const searchStore = useSearchStore();
 const router = useRouter();
 const route = useRoute();
+const juego = false;
 
-// Local search input value
+const authStore = useAuthStore();
+
+const handleLogin = () => {
+  const userId = prompt(
+    "Ingrese su ID de usuario para simular el inicio de sesión:",
+  );
+  authStore.login(userId);
+};
+
 const searchInput = ref(searchStore.search || "");
 
 // Sync input with store changes
@@ -48,31 +115,52 @@ const handleSearch = async () => {
   }
 };
 
+const handleQueVeoHoy = async () => {
+  try {
+    const config = useRuntimeConfig();
+    const baseUrl = config.public.backendUrl;
+
+    // Fetch collaborative recommendations
+    const recommendations = await $fetch<(Movie | RecommendationItem)[]>(
+      `${baseUrl}/api/v1/recommendations/collaborative/${authStore.userId}`,
+    );
+
+    if (recommendations && recommendations.length > 0) {
+      // Get a random recommendation instead of the first one
+      const randomIndex = Math.floor(Math.random() * recommendations.length);
+      const randomRecommendation = recommendations[randomIndex];
+
+      if (randomRecommendation) {
+        // Extract movie data (handle both Movie and RecommendationItem structures)
+        const movieData =
+          "movie" in randomRecommendation
+            ? randomRecommendation.movie
+            : randomRecommendation;
+
+        // Open modal with the movie
+        modalStore.openModal(movieData);
+      }
+    } else {
+      // Handle case where no recommendations are available
+      console.log("No hay recomendaciones disponibles");
+      // You could show a toast notification here
+    }
+  } catch (error) {
+    console.error("Error fetching recommendation:", error);
+    // You could show an error toast here
+  }
+};
+
 const links = [
-  {
-    text: "USUARIO",
-    url: "/user",
-    tooltip: "Ir a mi perfil",
-  },
   {
     text: "FILMS",
     url: "/films",
     tooltip: "Ver y filtrar películas",
   },
   {
-    text: "¿QUÉ VEO HOY?",
-    url: "/films",
-    tooltip: "Descubrí qué ver hoy",
-  },
-  {
     text: "TOPS",
     url: "/tops",
     tooltip: "Ver las películas más populares",
-  },
-  {
-    text: "CRÍTICAS POPULARES",
-    url: "/criticas",
-    tooltip: "Ver las críticas más populares",
   },
 ];
 
@@ -86,11 +174,6 @@ const linksUser = [
     text: "TOPS",
     url: "/tops",
     tooltip: "Ver las películas más populares",
-  },
-  {
-    text: "CRÍTICAS POPULARES",
-    url: "/criticas",
-    tooltip: "Ver las críticas más populares",
   },
 ];
 </script>
@@ -106,11 +189,14 @@ const linksUser = [
     </NuxtLink>
 
     <div class="flex items-center gap-8">
-      <UButton v-if="!user" class="bg-red hover:bg-red/80 font-bold text-white"
+      <UButton
+        v-if="!authStore.userId"
+        class="bg-red hover:bg-red/80 font-bold text-white"
+        @click="handleLogin"
         >INICIAR SESIÓN</UButton
       >
       <UTooltip
-        v-for="link in user ? links : linksUser"
+        v-for="link in authStore.userId ? links : linksUser"
         :key="link.url"
         :text="link.tooltip"
       >
@@ -121,13 +207,18 @@ const linksUser = [
           {{ link.text }}
         </NuxtLink>
       </UTooltip>
-      <UTooltip text="Juego">
+      <UTooltip v-if="juego" text="Juego">
         <UButton
           class="bg-red hover:bg-red/80 cursor-pointer rounded-full p-2 transition"
         >
           <UIcon name="i-lucide-gamepad-2" class="size-7 text-white" />
         </UButton>
       </UTooltip>
+
+      <UButton v-if="authStore.userId" @click="handleQueVeoHoy">
+        ¿QUÉ VEO HOY?
+      </UButton>
+
       <UInput
         v-model="searchInput"
         size="lg"
@@ -138,9 +229,10 @@ const linksUser = [
         @keyup.enter="handleSearch"
       />
       <UButton
-        v-if="user"
+        v-if="authStore.userId"
         class="bg-teal hover:bg-teal/80 font-bold text-black"
         icon="i-lucide-log-out"
+        @click="authStore.logout()"
       />
     </div>
   </div>
