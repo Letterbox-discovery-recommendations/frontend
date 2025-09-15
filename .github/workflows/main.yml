@@ -22,6 +22,7 @@ jobs:
         run: yarn generate 
         env: 
           NUXT_BACKEND: ${{ secrets.NUXT_BACKEND }}
+          NUXT_GRAPHQL_BACKEND: ${{ secrets.NUXT_GRAPHQL_BACKEND }}
           NUXT_PUBLIC_SITE_URL: ${{ secrets.CLOUDFRONT_URL }}
       
       - name: Verify output
