@@ -55,7 +55,6 @@ const selectedGenero = ref([]);
 const selectedDuracion = ref();
 const selectedPlataforma = ref([]);
 
-// Watch for changes in filter selections and automatically update store
 watch(
   [
     selectedSort,
