@@ -1,18 +1,61 @@
 <script setup lang="ts">
-import { ref } from "vue";
+useSeoMeta({
+  title: "cineTrack - Iniciar Sesión",
+  description:
+    "Inicia sesión en tu cuenta para acceder a recomendaciones personalizadas.",
+});
 
-const email = ref("");
+const username = ref("");
 const password = ref("");
 
-function handleLogin() {
-  // Implement login logic here
-  console.log("Email:", email.value, "Password:", password.value);
+async function handleLogin() {
+  // Basic validation
+  if (!username.value || !password.value) {
+    console.error("Por favor completa todos los campos");
+    return;
+  }
+
+  // Debug: log the values being sent
+  console.log("Sending login data:", {
+    username: username.value,
+    password: password.value,
+  });
+
+  try {
+    // OAuth2 typically expects form-encoded data
+    const formData = new URLSearchParams();
+    formData.append("grant_type", "password");
+    formData.append("username", username.value);
+    formData.append("password", password.value);
+    formData.append("scope", "");
+
+    console.log("Form data:", formData.toString());
+
+    const response = await $fetch(
+      "http://users-prod-alb-1703954385.us-east-1.elb.amazonaws.com/api/v1/auth/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formData,
+      },
+    );
+
+    console.log("Login exitoso:", response);
+    // Here you could redirect to dashboard or handle success
+    // await navigateTo('/dashboard');
+  } catch (error) {
+    console.error("Error al iniciar sesión:", error);
+    console.error("Full error object:", JSON.stringify(error, null, 2));
+  }
 }
 </script>
 
 <template>
-  <div
+  <form
     class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700"
+    @submit.prevent="handleLogin"
   >
     <div
       class="flex w-full max-w-md flex-col gap-8 rounded-xl border border-white/10 bg-white/10 p-8 shadow-xl backdrop-blur-md"
@@ -32,28 +75,33 @@ function handleLogin() {
         </p>
       </div>
       <div class="flex flex-col gap-4">
-        <UFormField label="Email">
+        <UFormField
+          label="Nombre de usuario"
+          description="Ingresa tu nombre de usuario."
+        >
           <UInput
-            class="w-full"
-            v-model="email"
-            placeholder="Ingresa tu email"
+            v-model="username"
+            placeholder="Ingresa tu nombre de usuario"
             size="lg"
+            class="w-full"
           />
         </UFormField>
-        <UFormField label="Contraseña">
+
+        <UFormField label="Contraseña" description="Ingresa tu contraseña.">
           <UInput
-            class="w-full"
             v-model="password"
             placeholder="Ingresa tu contraseña"
             type="password"
             size="lg"
+            class="w-full"
           />
         </UFormField>
+
         <UButton
           label="Iniciar sesión"
           size="lg"
-          class="bg-red mt-2 text-center font-bold text-white flex items-center justify-center"
-          @click="handleLogin"
+          class="bg-red mt-2 flex items-center justify-center text-center font-bold text-white"
+          type="submit"
         />
       </div>
       <div class="mt-2 flex flex-col items-center gap-1">
@@ -63,5 +111,5 @@ function handleLogin() {
         >
       </div>
     </div>
-  </div>
+  </form>
 </template>
