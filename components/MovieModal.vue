@@ -57,16 +57,16 @@ const DEBOUNCE_TIME = 5000; // 5 segundos para evitar múltiples visitas
 const sendMovieVisit = async (movieId: number) => {
   // Verificar si el usuario está autenticado
   if (!authStore.userId) {
-    console.log('Usuario no autenticado, no se enviará la visita');
+    console.log("Usuario no autenticado, no se enviará la visita");
     return;
   }
 
   // Verificar debounce - evitar múltiples visitas en corto período
   const now = Date.now();
   const lastVisit = recentVisits.get(movieId);
-  
-  if (lastVisit && (now - lastVisit) < DEBOUNCE_TIME) {
-    console.log('Visita reciente detectada, omitiendo envío');
+
+  if (lastVisit && now - lastVisit < DEBOUNCE_TIME) {
+    console.log("Visita reciente detectada, omitiendo envío");
     return;
   }
 
@@ -86,33 +86,35 @@ const sendMovieVisit = async (movieId: number) => {
         currentDate.getMonth() + 1, // JavaScript months are 0-indexed
         currentDate.getDate(),
         currentDate.getHours(),
-        currentDate.getMinutes()
+        currentDate.getMinutes(),
       ],
       data: {
         evento: "pelicula_visitada",
         movie_id: movieId,
-        user_id: authStore.userId
+        user_id: authStore.userId,
       },
-      _origin: "core"
+      _origin: "core",
     };
 
     // Enviar al endpoint especificado
-    const response = await $fetch('http://core-letterboxd.us-east-2.elasticbeanstalk.com/events/receive?routingKey=discovery.pelicula.visitada', {
-      method: 'POST',
-      body: eventBody,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    const response = await $fetch(
+      "http://core-letterboxd.us-east-2.elasticbeanstalk.com/events/receive?routingKey=discovery.pelicula.visitada",
+      {
+        method: "POST",
+        body: eventBody,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
 
-    console.log('Visita a película enviada exitosamente:', {
+    console.log("Visita a película enviada exitosamente:", {
       movieId,
       userId: authStore.userId,
-      response
+      response,
     });
-
   } catch (error) {
-    console.error('Error enviando visita a película:', error);
+    console.error("Error enviando visita a película:", error);
     // Remover de la cache en caso de error para permitir retry
     recentVisits.delete(movieId);
   }
@@ -138,7 +140,7 @@ watch(selectedMovie, async (newMovie) => {
         },
       });
       movieData.value = (data.value?.pelicula as Movie) || null;
-      
+
       // Enviar visita a película cuando se carga exitosamente
       if (movieData.value?.id) {
         await sendMovieVisit(movieData.value.id);
@@ -146,7 +148,7 @@ watch(selectedMovie, async (newMovie) => {
     } catch (error) {
       console.error("Error loading movie data:", error);
       movieData.value = newMovie as Movie; // Fallback a los datos básicos
-      
+
       // Enviar visita incluso con datos básicos si hay ID
       if ((newMovie as any).id) {
         await sendMovieVisit((newMovie as any).id);
