@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 useSeoMeta({
   title: "cineTrack - Iniciar Sesión",
   description:
@@ -9,20 +9,17 @@ const username = ref("");
 const password = ref("");
 
 async function handleLogin() {
-  // Basic validation
   if (!username.value || !password.value) {
     console.error("Por favor completa todos los campos");
     return;
   }
 
-  // Debug: log the values being sent
   console.log("Sending login data:", {
     username: username.value,
     password: password.value,
   });
 
   try {
-    // OAuth2 typically expects form-encoded data
     const formData = new URLSearchParams();
     formData.append("grant_type", "password");
     formData.append("username", username.value);
@@ -31,20 +28,10 @@ async function handleLogin() {
 
     console.log("Form data:", formData.toString());
 
-    const response = await $fetch(
-      "http://users-prod-alb-1703954385.us-east-1.elb.amazonaws.com/api/v1/auth/login",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: formData,
-      },
-    );
+    const auth = useAuthStore();
 
-    console.log("Login exitoso:", response);
-    // Here you could redirect to dashboard or handle success
-    // await navigateTo('/dashboard');
+    await auth.login(formData);
+    
   } catch (error) {
     console.error("Error al iniciar sesión:", error);
     console.error("Full error object:", JSON.stringify(error, null, 2));
