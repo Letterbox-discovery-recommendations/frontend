@@ -1,4 +1,3 @@
-import { form } from "#build/ui";
 import { defineStore } from "pinia";
 
 export const useAuthStore = defineStore("auth", {
