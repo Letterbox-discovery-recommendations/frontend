@@ -5,12 +5,10 @@ useSeoMeta({
 });
 
 const authStore = useAuthStore();
+const router = useRouter();
 
 const handleLogin = () => {
-  const userId = prompt(
-    "Ingrese su ID de usuario para simular el inicio de sesión:",
-  );
-  authStore.login(userId);
+  router.push("/login");
 };
 </script>
 

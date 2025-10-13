@@ -66,10 +66,7 @@ const juego = false;
 const authStore = useAuthStore();
 
 const handleLogin = () => {
-  const userId = prompt(
-    "Ingrese su ID de usuario para simular el inicio de sesión:",
-  );
-  authStore.login(userId);
+  router.push("/login");
 };
 
 const searchInput = ref(searchStore.search || "");

@@ -31,7 +31,6 @@ async function handleLogin() {
     const auth = useAuthStore();
 
     await auth.login(formData);
-    
   } catch (error) {
     console.error("Error al iniciar sesión:", error);
     console.error("Full error object:", JSON.stringify(error, null, 2));
@@ -41,7 +40,7 @@ async function handleLogin() {
 
 <template>
   <form
-    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700"
+    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 px-4 py-8"
     @submit.prevent="handleLogin"
   >
     <div
@@ -62,10 +61,7 @@ async function handleLogin() {
         </p>
       </div>
       <div class="flex flex-col gap-4">
-        <UFormField
-          label="Nombre de usuario"
-          description="Ingresa tu nombre de usuario."
-        >
+        <UFormField description="Ingresa tu nombre de usuario.">
           <UInput
             v-model="username"
             placeholder="Ingresa tu nombre de usuario"
@@ -74,7 +70,7 @@ async function handleLogin() {
           />
         </UFormField>
 
-        <UFormField label="Contraseña" description="Ingresa tu contraseña.">
+        <UFormField description="Ingresa tu contraseña.">
           <UInput
             v-model="password"
             placeholder="Ingresa tu contraseña"

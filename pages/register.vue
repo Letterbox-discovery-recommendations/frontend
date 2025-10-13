@@ -57,7 +57,7 @@ async function handleRegister() {
 
 <template>
   <form
-    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700"
+    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 px-4 py-8"
     @submit.prevent="handleRegister"
   >
     <div
@@ -79,10 +79,7 @@ async function handleRegister() {
       <div class="flex flex-col gap-4">
         <!-- Basic Information -->
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <UFormField
-            label="Nombre de usuario"
-            description="Elige un nombre único para tu perfil."
-          >
+          <UFormField description="Elige un nombre único para tu perfil.">
             <UInput
               v-model="username"
               placeholder="Ingresa tu nombre de usuario"
@@ -92,7 +89,6 @@ async function handleRegister() {
           </UFormField>
 
           <UFormField
-            label="Email"
             description="Usaremos tu email para enviarte notificaciones."
           >
             <UInput
@@ -107,10 +103,7 @@ async function handleRegister() {
 
         <!-- Password Fields -->
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <UFormField
-            label="Contraseña"
-            description="Debe tener al menos 8 caracteres."
-          >
+          <UFormField description="Debe tener al menos 8 caracteres.">
             <UInput
               v-model="password"
               placeholder="Crea una contraseña"
@@ -120,10 +113,7 @@ async function handleRegister() {
             />
           </UFormField>
 
-          <UFormField
-            label="Confirmar contraseña"
-            description="Repite tu contraseña para confirmar."
-          >
+          <UFormField description="Repite tu contraseña para confirmar.">
             <UInput
               v-model="confirmPassword"
               placeholder="Confirmar contraseña"
@@ -145,7 +135,7 @@ async function handleRegister() {
             />
           </UFormField>
 
-          <UFormField label="Apellido" description="Tu apellido.">
+          <UFormField description="Tu apellido.">
             <UInput
               v-model="lastName"
               placeholder="Ingresa tu apellido"
@@ -157,10 +147,7 @@ async function handleRegister() {
 
         <!-- Profile Information -->
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <UFormField
-            label="Fecha de nacimiento"
-            description="Formato: YYYY-MM-DD"
-          >
+          <UFormField description="Formato: YYYY-MM-DD">
             <UInput
               v-model="birthDate"
               placeholder="1990-01-15"
@@ -170,7 +157,7 @@ async function handleRegister() {
             />
           </UFormField>
 
-          <UFormField label="Género" description="Tu género.">
+          <UFormField description="Tu género.">
             <UInput
               v-model="gender"
               placeholder="Masculino, Femenino, Otro"
@@ -182,7 +169,7 @@ async function handleRegister() {
 
         <!-- Contact Information -->
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <UFormField label="Ubicación" description="Tu ciudad y país.">
+          <UFormField description="Tu ciudad y país.">
             <UInput
               v-model="location"
               placeholder="Buenos Aires, Argentina"
@@ -191,10 +178,7 @@ async function handleRegister() {
             />
           </UFormField>
 
-          <UFormField
-            label="Sitio web"
-            description="Tu página web personal (opcional)."
-          >
+          <UFormField description="Tu página web personal (opcional).">
             <UInput
               v-model="website"
               placeholder="https://tusitio.com"
@@ -206,10 +190,7 @@ async function handleRegister() {
         </div>
 
         <!-- Additional Information -->
-        <UFormField
-          label="URL de imagen de perfil"
-          description="Link a tu foto de perfil (opcional)."
-        >
+        <UFormField description="Link a tu foto de perfil (opcional).">
           <UInput
             v-model="imageUrl"
             placeholder="https://example.com/tu-foto.jpg"
@@ -220,7 +201,6 @@ async function handleRegister() {
         </UFormField>
 
         <UFormField
-          label="Biografía"
           description="Cuéntanos sobre ti y tus intereses cinematográficos."
         >
           <UTextarea
@@ -233,7 +213,6 @@ async function handleRegister() {
         </UFormField>
 
         <UFormField
-          label="Experiencia"
           description="Tu experiencia relacionada con el cine (opcional)."
         >
           <UTextarea

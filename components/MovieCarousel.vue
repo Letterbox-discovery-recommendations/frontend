@@ -89,12 +89,19 @@ const fetchMovies = async () => {
         `${baseUrl}/api/v1/rankings/${props.endpoint}/${id.value}`,
       );
     } else if (props.endpoint === "content") {
-      movies.value = await $fetch(
-        `${baseUrl}/api/v1/recommendations/content/${authStore.userId}`,
-      );
+      movies.value = await $fetch(`${baseUrl}/api/v1/recommendations/content`, {
+        headers: {
+          Authorization: `Bearer ${authStore.token}`,
+        },
+      });
     } else if (props.endpoint === "collaborative") {
       movies.value = await $fetch(
-        `${baseUrl}/api/v1/recommendations/collaborative/${authStore.userId}`,
+        `${baseUrl}/api/v1/recommendations/collaborative`,
+        {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+          },
+        },
       );
     } else {
       movies.value = await $fetch(
