@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 interface Movie {
   id: number;
   titulo: string;

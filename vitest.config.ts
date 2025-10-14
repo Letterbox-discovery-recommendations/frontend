@@ -1,5 +1,6 @@
 import { defineConfig } from "vitest/config";
 import { defineVitestProject } from "@nuxt/test-utils/config";
+import path from 'path'
 
 export default defineConfig({
   test: {
@@ -16,8 +17,22 @@ export default defineConfig({
           name: "nuxt",
           include: ["test/nuxt/*.{test,spec}.ts"],
           environment: "nuxt",
+          setupFiles: ["./test/setup.ts"], 
+          environmentOptions: {
+            nuxt: {
+              mock: {
+                intersectionObserver: true,
+                indexedDb: true,
+              },
+            },
+          },
         },
       }),
     ],
   },
-});
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './'),
+    },
+  },
+})

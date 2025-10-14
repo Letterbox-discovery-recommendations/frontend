@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 const filterStore = useFilterStore();
 
 const { data: genres } = useAsyncGql({
