@@ -25,4 +25,3 @@ jobs:
     with:
       environment: ${{ inputs.environment || 'dev' }}
       action: ${{ inputs.action || 'plan' }}
-    secrets: inherit
