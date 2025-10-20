@@ -19,7 +19,6 @@ on:
     branches:
       - terraform-implementation
       - dev
-      - terraform-deploy
 
 jobs:
   trigger-terraform:
@@ -27,7 +26,7 @@ jobs:
     with:
       environment: ${{ inputs.environment || 'dev' }}
       action: ${{ 
-        (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/terraform-deploy') 
+        (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/terraform-implementation') 
         && 'apply' 
         || (inputs.action || 'plan') 
         }}
