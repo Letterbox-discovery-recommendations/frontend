@@ -55,9 +55,9 @@ const recentVisits = new Map<number, number>();
 const DEBOUNCE_TIME = 5000; // 5 segundos para evitar múltiples visitas
 
 const sendMovieVisit = async (movieId: number) => {
-  // Verificar si el usuario está autenticado
-  if (!authStore.userId) {
-    console.log("Usuario no autenticado, no se enviará la visita");
+  // Verificar si el usuario está autenticado y tiene token
+  if (!authStore.userId || !authStore.token) {
+    console.log("Usuario no autenticado o sin token, no se enviará la visita");
     return;
   }
 
@@ -74,39 +74,21 @@ const sendMovieVisit = async (movieId: number) => {
     // Registrar la visita actual
     recentVisits.set(movieId, now);
 
-    // Crear el cuerpo del evento según la especificación
-    const currentDate = new Date();
-    const eventBody = {
-      id: `visit-${movieId}-${authStore.userId}-${now}`,
-      type: "pelicula.visitada",
-      source: "/discovery/api",
-      datacontenttype: "application/json",
-      sysDate: [
-        currentDate.getFullYear(),
-        currentDate.getMonth() + 1, // JavaScript months are 0-indexed
-        currentDate.getDate(),
-        currentDate.getHours(),
-        currentDate.getMinutes(),
-      ],
-      data: {
-        evento: "pelicula_visitada",
-        movie_id: movieId,
-        user_id: authStore.userId,
-      },
-      _origin: "core",
+    // Crear el cuerpo del request según el nuevo formato
+    const requestBody = {
+      movie_id: movieId,
     };
 
-    // Enviar al endpoint especificado
-    const response = await $fetch(
-      "http://core-letterboxd.us-east-2.elasticbeanstalk.com/events/receive?routingKey=discovery.pelicula.visitada",
-      {
-        method: "POST",
-        body: eventBody,
-        headers: {
-          "Content-Type": "application/json",
-        },
+    // Enviar al nuevo endpoint con Bearer token
+    const response = await $fetch("http://localhost:8000/api/v1/visits/visit", {
+      method: "POST",
+      body: requestBody,
+      headers: {
+        accept: "application/json",
+        Authorization: `Bearer ${authStore.token}`,
+        "Content-Type": "application/json",
       },
-    );
+    });
 
     console.log("Visita a película enviada exitosamente:", {
       movieId,
