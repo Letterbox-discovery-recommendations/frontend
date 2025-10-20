@@ -119,7 +119,12 @@ const handleQueVeoHoy = async () => {
 
     // Fetch collaborative recommendations
     const recommendations = await $fetch<(Movie | RecommendationItem)[]>(
-      `${baseUrl}/api/v1/recommendations/collaborative/${authStore.userId}`,
+      `${baseUrl}/api/v1/recommendations/collaborative`,
+      {
+        headers: {
+          Authorization: `Bearer ${authStore.token}`,
+        },
+      },
     );
 
     if (recommendations && recommendations.length > 0) {
