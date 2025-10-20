@@ -1,0 +1,24 @@
+name: Run Terraform from Front
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options: [dev, prod]
+      action:
+        description: 'Terraform action'
+        required: true
+        type: choice
+        default: 'plan'
+        options: [plan, apply, destroy]
+
+jobs:
+  trigger-terraform:
+    uses: ORG_OR_OWNER/REPO_TERRAFORM/.github/workflows/terraform-deploy.yml@main
+    with:
+      environment: ${{ inputs.environment }}
+      action: ${{ inputs.action }}
+    secrets: inherit
