@@ -14,11 +14,15 @@ on:
         type: choice
         default: 'plan'
         options: [plan, apply, destroy]
+  
+  push:
+    branches:
+      - terraform-implementation
 
 jobs:
   trigger-terraform:
-    uses: ORG_OR_OWNER/REPO_TERRAFORM/.github/workflows/terraform-deploy.yml@main
+    uses: Letterbox-discovery-recommendations/terraform/.github/workflows/terraform-deploy.yml@main
     with:
-      environment: ${{ inputs.environment }}
-      action: ${{ inputs.action }}
+      environment: ${{ inputs.environment || 'dev' }}
+      action: ${{ inputs.action || 'plan' }}
     secrets: inherit
