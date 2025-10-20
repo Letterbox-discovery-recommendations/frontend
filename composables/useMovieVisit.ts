@@ -33,19 +33,19 @@ export const useMovieVisit = () => {
         movie_id: movieId,
       };
 
+      const config = useRuntimeConfig();
+      const baseUrl = config.public.backendUrl;
+
       // Enviar al nuevo endpoint con Bearer token
-      const response = await $fetch(
-        "http://localhost:8000/api/v1/visits/visit",
-        {
-          method: "POST",
-          body: requestBody,
-          headers: {
-            accept: "application/json",
-            Authorization: `Bearer ${authStore.token}`,
-            "Content-Type": "application/json",
-          },
+      const response = await $fetch(`${baseUrl}/api/v1/visits/visit`, {
+        method: "POST",
+        body: requestBody,
+        headers: {
+          accept: "application/json",
+          Authorization: `Bearer ${authStore.token}`,
+          "Content-Type": "application/json",
         },
-      );
+      });
 
       console.log("Visita a película enviada exitosamente:", {
         movieId,
