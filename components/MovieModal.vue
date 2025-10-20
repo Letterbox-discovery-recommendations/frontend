@@ -382,11 +382,11 @@ const formatYear = (fecha?: string) => {
                       </div>
                     </div>
 
-                    <!-- Botón "Tristar & Looker" -->
+                    <!-- Botón con nombre de película -->
                     <button
-                      class="w-full rounded bg-orange-500 px-2 py-1 text-[10px] font-bold tracking-wide text-white uppercase transition-colors duration-200 hover:bg-orange-600"
+                      class="line-clamp-2 w-full rounded bg-orange-500 px-2 py-1 text-[10px] font-bold tracking-wide text-white uppercase transition-colors duration-200 hover:bg-orange-600"
                     >
-                      Tristar & Looker
+                      {{ movie.titulo }}
                     </button>
                   </div>
                 </div>
