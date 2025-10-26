@@ -60,59 +60,18 @@ const loading = ref(false);
 const similarMovies = ref<Movie[]>([]);
 const loadingSimilar = ref(false);
 
-// Función para cargar películas similares (preparada para cuando esté el endpoint)
+// Función para cargar películas similares
 const loadSimilarMovies = async (movieId: number) => {
   loadingSimilar.value = true;
   try {
-    // TODO: Reemplazar con el endpoint real cuando esté disponible
-    // const config = useRuntimeConfig();
-    // const baseUrl = config.public.backendUrl;
-    // const response = await $fetch(`${baseUrl}/api/v1/movies/${movieId}/similar`);
-    // similarMovies.value = response;
+    const config = useRuntimeConfig();
+    const baseUrl = config.public.backendUrl;
 
-    // Por ahora, películas de ejemplo para demostrar la UI
-    similarMovies.value = [
-      {
-        id: 1,
-        titulo: "Película Similar 1",
-        posterUrl: "https://image.tmdb.org/t/p/w500/example1.jpg",
-        ratingPelicula: 4.5,
-        generos: [{ id: 1, nombre: "Acción" }],
-        plataformas: [{ id: 1, nombre: "Netflix" }],
-      },
-      {
-        id: 2,
-        titulo: "Película Similar 2",
-        posterUrl: "https://image.tmdb.org/t/p/w500/example2.jpg",
-        ratingPelicula: 4.0,
-        generos: [{ id: 2, nombre: "Drama" }],
-        plataformas: [{ id: 2, nombre: "Amazon Prime" }],
-      },
-      {
-        id: 3,
-        titulo: "Película Similar 3",
-        posterUrl: "https://image.tmdb.org/t/p/w500/example3.jpg",
-        ratingPelicula: 4.8,
-        generos: [{ id: 1, nombre: "Acción" }],
-        plataformas: [{ id: 1, nombre: "Netflix" }],
-      },
-      {
-        id: 4,
-        titulo: "Película Similar 4",
-        posterUrl: "https://image.tmdb.org/t/p/w500/example4.jpg",
-        ratingPelicula: 3.9,
-        generos: [{ id: 3, nombre: "Comedia" }],
-        plataformas: [{ id: 3, nombre: "Disney+" }],
-      },
-      {
-        id: 5,
-        titulo: "Película Similar 5",
-        posterUrl: "https://image.tmdb.org/t/p/w500/example5.jpg",
-        ratingPelicula: 4.2,
-        generos: [{ id: 2, nombre: "Drama" }],
-        plataformas: [{ id: 1, nombre: "Netflix" }],
-      },
-    ] as Movie[];
+    const response = await $fetch<Movie[]>(
+      `${baseUrl}/api/v1/recommendations/similar/${movieId}`,
+    );
+
+    similarMovies.value = response || [];
   } catch (error) {
     console.error("Error cargando películas similares:", error);
     similarMovies.value = [];
