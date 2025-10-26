@@ -1,5 +1,5 @@
-/*import { render, fireEvent } from '@testing-library/vue'
-import { vi } from 'vitest'
+import { render, fireEvent } from '@testing-library/vue'
+import { describe, it, expect, vi } from 'vitest'
 import { createTestingPinia } from '@pinia/testing'
 import MovieCard from '../../components/Movie.vue'
 
@@ -46,20 +46,23 @@ describe('MovieCard.vue', () => {
   }
 
   it('renderiza el título y la imagen correctamente', () => {
-    const { getByText, getByTestId } = renderComponent()
+  const { getByText, getByAltText } = renderComponent()
 
     // Verifica el título en mayúsculas
     expect(getByText('INCEPTION')).toBeTruthy()
 
     // Verifica que NuxtImg reciba la src y alt correctos
-    const img = getByTestId('nuxt-img') as HTMLImageElement
+    // Some test environments render a plain <img> without the test id; use alt text instead
+    const img = getByAltText('Inception') as HTMLImageElement
     expect(img.src).toContain(movieProps.posterUrl)
     expect(img.alt).toBe(movieProps.titulo)
   })
 
   it('llama a modalStore.openModal con las props al hacer click', async () => {
-    const { getByRole } = renderComponent()
-    const card = getByRole('button', { hidden: true }) || getByRole('img').closest('div')
+  const { getByText } = renderComponent()
+  // The card has a clickable wrapper; find by title text and click its closest container
+  const titleEl = getByText('INCEPTION')
+  const card = titleEl.closest('div')
 
     // Obtenemos el store de modal desde Pinia mockeada
     const { useModalStore } = await import('@/stores/modal')
@@ -70,4 +73,4 @@ describe('MovieCard.vue', () => {
     expect(modalStore.openModal).toHaveBeenCalledTimes(1)
     expect(modalStore.openModal).toHaveBeenCalledWith(movieProps)
   })
-})*/
+})
