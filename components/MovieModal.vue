@@ -49,6 +49,8 @@ interface Movie {
 const modalStore = useModalStore();
 const { isOpen, selectedMovie } = storeToRefs(modalStore);
 
+const authStore = useAuthStore();
+
 // Usar el composable para manejar visitas a películas
 const { sendMovieVisit } = useMovieVisit();
 
@@ -67,11 +69,12 @@ const loadSimilarMovies = async (movieId: number) => {
     const config = useRuntimeConfig();
     const baseUrl = config.public.backendUrl;
 
-    const response = await $fetch<Movie[]>(
+    const response = await $fetch<Array<{ movie: Movie; score: number }>>(
       `${baseUrl}/api/v1/recommendations/similar/${movieId}`,
     );
 
-    similarMovies.value = response || [];
+    // Extraer solo las películas del array de respuesta
+    similarMovies.value = response ? response.map((item) => item.movie) : [];
   } catch (error) {
     console.error("Error cargando películas similares:", error);
     similarMovies.value = [];
@@ -102,6 +105,7 @@ watch(selectedMovie, async (newMovie) => {
       if (movieData.value?.id) {
         await sendMovieVisit(movieData.value.id);
         // Cargar películas similares
+
         await loadSimilarMovies(movieData.value.id);
       }
     } catch (error) {
