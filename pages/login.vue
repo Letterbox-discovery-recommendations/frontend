@@ -29,7 +29,6 @@ async function handleLogin() {
     console.log("Form data:", formData.toString());
 
     const auth = useAuthStore();
-
     await auth.login(formData);
   } catch (error) {
     console.error("Error al iniciar sesión:", error);
