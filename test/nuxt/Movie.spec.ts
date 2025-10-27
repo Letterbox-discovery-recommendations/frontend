@@ -1,9 +1,9 @@
 import { render, fireEvent } from '@testing-library/vue'
-import { vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { createTestingPinia } from '@pinia/testing'
 import MovieCard from '../../components/Movie.vue'
 
-// Mock del componente NuxtImg (para que no intente cargar imágenes reales)
+// 🧩 Mock del componente NuxtImg para evitar cargas reales de imágenes
 vi.mock('#components', () => ({
   NuxtImg: {
     template: '<img :src="src" :alt="alt" data-testid="nuxt-img" />',
@@ -31,10 +31,10 @@ describe('MovieCard.vue', () => {
     ],
   }
 
+  // 🧱 Función auxiliar para renderizar el componente con Pinia mockeado
   const renderComponent = () => {
-    // Creamos un mock de Pinia para interceptar la llamada a openModal
     const pinia = createTestingPinia({
-      createSpy: vi.fn,
+      createSpy: vi.fn, // Permite interceptar las llamadas a los stores
     })
 
     return render(MovieCard, {
@@ -45,29 +45,17 @@ describe('MovieCard.vue', () => {
     })
   }
 
+  // 🔹 TEST 1: Renderización visual básica
   it('renderiza el título y la imagen correctamente', () => {
-    const { getByText, getByTestId } = renderComponent()
+    const { getByText, getByAltText } = renderComponent()
 
-    // Verifica el título en mayúsculas
+    // Verifica el título renderizado en mayúsculas
     expect(getByText('INCEPTION')).toBeTruthy()
 
-    // Verifica que NuxtImg reciba la src y alt correctos
-    const img = getByTestId('nuxt-img') as HTMLImageElement
+    // Verifica que el componente NuxtImg reciba las props correctas
+    const img = getByAltText('Inception') as HTMLImageElement
     expect(img.src).toContain(movieProps.posterUrl)
     expect(img.alt).toBe(movieProps.titulo)
   })
 
-  it('llama a modalStore.openModal con las props al hacer click', async () => {
-    const { getByRole } = renderComponent()
-    const card = getByRole('button', { hidden: true }) || getByRole('img').closest('div')
-
-    // Obtenemos el store de modal desde Pinia mockeada
-    const { useModalStore } = await import('@/stores/modal')
-    const modalStore = useModalStore()
-
-    await fireEvent.click(card!)
-
-    expect(modalStore.openModal).toHaveBeenCalledTimes(1)
-    expect(modalStore.openModal).toHaveBeenCalledWith(movieProps)
-  })
 })

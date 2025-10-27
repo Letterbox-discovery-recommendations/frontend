@@ -49,67 +49,44 @@ interface Movie {
 const modalStore = useModalStore();
 const { isOpen, selectedMovie } = storeToRefs(modalStore);
 
-// Funcionalidad para manejar visitas a películas
 const authStore = useAuthStore();
-const recentVisits = new Map<number, number>();
-const DEBOUNCE_TIME = 5000; // 5 segundos para evitar múltiples visitas
 
-const sendMovieVisit = async (movieId: number) => {
-  // Verificar si el usuario está autenticado y tiene token
-  if (!authStore.userId || !authStore.token) {
-    console.log("Usuario no autenticado o sin token, no se enviará la visita");
-    return;
-  }
-
-  // Verificar debounce - evitar múltiples visitas en corto período
-  const now = Date.now();
-  const lastVisit = recentVisits.get(movieId);
-
-  if (lastVisit && now - lastVisit < DEBOUNCE_TIME) {
-    console.log("Visita reciente detectada, omitiendo envío");
-    return;
-  }
-
-  try {
-    // Registrar la visita actual
-    recentVisits.set(movieId, now);
-
-    // Crear el cuerpo del request según el nuevo formato
-    const requestBody = {
-      movie_id: movieId,
-    };
-    const config = useRuntimeConfig();
-    const baseUrl = config.public.backendUrl;
-    // Enviar al nuevo endpoint con Bearer token
-    const response = await $fetch(`${baseUrl}/api/v1/visits/visit`, {
-      method: "POST",
-      body: requestBody,
-      headers: {
-        accept: "application/json",
-        Authorization: `Bearer ${authStore.token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    console.log("Visita a película enviada exitosamente:", {
-      movieId,
-      userId: authStore.userId,
-      response,
-    });
-  } catch (error) {
-    console.error("Error enviando visita a película:", error);
-    // Remover de la cache en caso de error para permitir retry
-    recentVisits.delete(movieId);
-  }
-};
+// Usar el composable para manejar visitas a películas
+const { sendMovieVisit } = useMovieVisit();
 
 // Estado para los datos completos de la película
 const movieData = ref<Movie | null>(null);
 const loading = ref(false);
 
+// Estado para películas similares
+const similarMovies = ref<Movie[]>([]);
+const loadingSimilar = ref(false);
+
+// Función para cargar películas similares
+const loadSimilarMovies = async (movieId: number) => {
+  loadingSimilar.value = true;
+  try {
+    const config = useRuntimeConfig();
+    const baseUrl = config.public.backendUrl;
+
+    const response = await $fetch<Array<{ movie: Movie; score: number }>>(
+      `${baseUrl}/api/v1/recommendations/similar/${movieId}`,
+    );
+
+    // Extraer solo las películas del array de respuesta
+    similarMovies.value = response ? response.map((item) => item.movie) : [];
+  } catch (error) {
+    console.error("Error cargando películas similares:", error);
+    similarMovies.value = [];
+  } finally {
+    loadingSimilar.value = false;
+  }
+};
+
 const closeModal = () => {
   modalStore.closeModal();
   movieData.value = null;
+  similarMovies.value = [];
 };
 
 watch(selectedMovie, async (newMovie) => {
@@ -127,6 +104,9 @@ watch(selectedMovie, async (newMovie) => {
       // Enviar visita a película cuando se carga exitosamente
       if (movieData.value?.id) {
         await sendMovieVisit(movieData.value.id);
+        // Cargar películas similares
+
+        await loadSimilarMovies(movieData.value.id);
       }
     } catch (error) {
       console.error("Error loading movie data:", error);
@@ -135,6 +115,8 @@ watch(selectedMovie, async (newMovie) => {
       // Enviar visita incluso con datos básicos si hay ID
       if ((newMovie as any).id) {
         await sendMovieVisit((newMovie as any).id);
+        // Cargar películas similares
+        await loadSimilarMovies((newMovie as any).id);
       }
     } finally {
       loading.value = false;
@@ -176,7 +158,7 @@ const formatYear = (fecha?: string) => {
         @click.self="closeModal"
       >
         <div
-          class="relative mx-4 w-full max-w-4xl overflow-hidden rounded-lg border border-gray-600/30 bg-[#334455] shadow-2xl"
+          class="relative mx-4 max-h-[90vh] w-full max-w-6xl overflow-hidden overflow-y-auto rounded-lg border border-gray-600/30 bg-[#334455] shadow-2xl"
         >
           <button
             class="absolute top-4 left-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
@@ -298,6 +280,85 @@ const formatYear = (fecha?: string) => {
                   </span>
                 </div>
               </div>
+
+              <!-- Películas Similares -->
+              <div class="text-left">
+                <h3
+                  class="mb-3 text-sm font-semibold tracking-wide text-gray-300 uppercase"
+                >
+                  Filmes Similares
+                </h3>
+
+                <!-- Loading state -->
+                <div
+                  v-if="loadingSimilar"
+                  class="flex items-center justify-center py-8"
+                >
+                  <div class="text-sm text-gray-400">
+                    Cargando películas similares...
+                  </div>
+                </div>
+
+                <!-- Películas similares grid -->
+                <div
+                  v-else-if="similarMovies.length > 0"
+                  class="grid grid-cols-5 gap-2"
+                >
+                  <div
+                    v-for="movie in similarMovies"
+                    :key="movie.id"
+                    class="group cursor-pointer"
+                    @click="modalStore.openModal(movie)"
+                  >
+                    <!-- Poster -->
+                    <div
+                      class="relative mb-2 aspect-[2/3] overflow-hidden rounded-lg bg-gray-700"
+                    >
+                      <NuxtImg
+                        v-if="movie.posterUrl"
+                        :src="movie.posterUrl"
+                        :alt="movie.titulo"
+                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
+                      <div
+                        v-else
+                        class="flex h-full w-full items-center justify-center text-xs text-gray-500"
+                      >
+                        Sin imagen
+                      </div>
+
+                      <!-- Overlay con info al hover -->
+                      <div
+                        class="absolute inset-0 flex flex-col justify-end bg-black/70 p-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                      >
+                        <div
+                          class="mb-1 line-clamp-2 text-xs font-semibold text-white"
+                        >
+                          {{ movie.titulo }}
+                        </div>
+                        <div class="flex items-center text-xs text-gray-300">
+                          <span class="mr-1 text-yellow-400">★</span>
+                          <span>{{
+                            movie.ratingPelicula?.toFixed(1) || "N/A"
+                          }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Botón con nombre de película -->
+                    <button
+                      class="line-clamp-2 w-full rounded bg-orange-500 px-2 py-1 text-[10px] font-bold tracking-wide text-white uppercase transition-colors duration-200 hover:bg-orange-600"
+                    >
+                      {{ movie.titulo }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Estado vacío -->
+                <div v-else class="py-8 text-center text-sm text-gray-400">
+                  No hay películas similares disponibles
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -326,5 +387,23 @@ const formatYear = (fecha?: string) => {
 .modal-enter-from .modal-content,
 .modal-leave-to .modal-content {
   transform: scale(0.9);
+}
+
+/* Estilos para el scrollbar */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 </style>
