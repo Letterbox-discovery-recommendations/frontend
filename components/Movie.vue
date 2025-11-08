@@ -54,29 +54,41 @@ const openMovieModal = () => {
 
 <template>
   <div
-    class="flex h-[225px] w-[180px] cursor-pointer flex-col justify-center rounded-md border border-gray-400/10 bg-[#445566] shadow-lg backdrop-blur-md transition-shadow duration-200 hover:shadow-xl"
+    class="group relative cursor-pointer overflow-hidden rounded-lg transition-transform hover:scale-105"
     @click="openMovieModal"
   >
-    <div class="w-full flex-1 overflow-hidden">
+    <!-- Movie Poster -->
+    <div class="relative">
       <NuxtImg
-        class="img h-full w-full object-cover"
+        v-if="props.posterUrl"
         :src="props.posterUrl"
         :alt="props.titulo"
+        class="h-auto w-full object-cover"
+        loading="lazy"
       />
+      <div
+        v-else
+        class="flex h-96 w-full items-center justify-center bg-gray-800"
+      >
+        <UIcon name="i-lucide-image-off" class="text-4xl text-gray-600" />
+      </div>
+
+      <!-- Hover Overlay -->
+      <div
+        class="absolute inset-0 flex items-center justify-center bg-black/70 opacity-0 transition-opacity group-hover:opacity-100"
+      >
+        <UIcon name="i-lucide-search" class="text-5xl text-white" />
+      </div>
     </div>
-    <div class="flex h-auto items-center rounded-b-md bg-[#445566] p-2">
-      <h1 class="font-oswald truncate text-sm font-bold text-[#AABBCC]">
+
+    <!-- Movie Title - Bottom Section -->
+    <div class="flex h-16 items-center bg-gray-700/80 px-3 py-2">
+      <h3
+        class="font-oswald line-clamp-2 text-sm font-semibold text-white"
+        :title="props.titulo"
+      >
         {{ props.titulo.toUpperCase() }}
-      </h1>
+      </h3>
     </div>
   </div>
 </template>
-
-<style scoped>
-.img {
-  border-top-left-radius: 0.34rem;
-  border-top-right-radius: 0.34rem;
-  border-left-color: var(--color-gray-400);
-  border-right-color: var(--color-gray-400);
-}
-</style>

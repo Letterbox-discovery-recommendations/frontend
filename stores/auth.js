@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { useRouter } from "vue-router";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -25,6 +26,7 @@ export const useAuthStore = defineStore("auth", {
 
       console.log("Token guardado:", this.token);
       console.log("User ID guardado:", this.userId);
+      await navigateTo("/");
     },
 
     async register(body) {

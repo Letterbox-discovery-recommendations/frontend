@@ -44,6 +44,7 @@ interface Movie {
   plataformas?: Platform[];
   elenco?: CastMember[];
   ratingPelicula?: number;
+  score?: number;
 }
 
 const modalStore = useModalStore();
@@ -74,7 +75,9 @@ const loadSimilarMovies = async (movieId: number) => {
     );
 
     // Extraer solo las películas del array de respuesta
-    similarMovies.value = response ? response.map((item) => item.movie) : [];
+    similarMovies.value = response
+      ? response.map((item) => ({ ...item.movie, score: item.score }))
+      : [];
   } catch (error) {
     console.error("Error cargando películas similares:", error);
     similarMovies.value = [];
@@ -158,10 +161,10 @@ const formatYear = (fecha?: string) => {
         @click.self="closeModal"
       >
         <div
-          class="relative mx-4 max-h-[90vh] w-full max-w-6xl overflow-hidden overflow-y-auto rounded-lg border border-gray-600/30 bg-[#334455] shadow-2xl"
+          class="relative mx-4 max-h-[90vh] w-full max-w-6xl overflow-hidden overflow-y-auto rounded-lg bg-neutral-500 shadow-2xl"
         >
           <button
-            class="absolute top-4 left-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
+            class="absolute top-4 left-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 transition-colors hover:bg-black/70"
             @click="closeModal"
           >
             <svg
@@ -202,13 +205,13 @@ const formatYear = (fecha?: string) => {
               <!-- Título y año -->
               <div class="text-left">
                 <h2
-                  class="font-oswald text-2xl font-bold tracking-wide text-white uppercase"
+                  class="font-oswald text-2xl font-bold tracking-wide text-neutral-900 uppercase"
                 >
                   {{ movieData?.titulo }}
                 </h2>
                 <p
                   v-if="movieData?.fechaEstreno"
-                  class="mt-1 text-sm text-gray-400"
+                  class="mt-1 text-sm font-medium text-gray-300"
                 >
                   Dirigida por
                   {{ movieData?.director?.nombre || "Director desconocido" }} •
@@ -237,11 +240,11 @@ const formatYear = (fecha?: string) => {
               <!-- Géneros -->
               <div class="text-left">
                 <h3
-                  class="mb-1 text-sm font-semibold tracking-wide text-gray-300 uppercase"
+                  class="mb-1 text-sm font-semibold tracking-wide text-neutral-900 uppercase"
                 >
                   Géneros
                 </h3>
-                <p class="text-white">
+                <p class="text-neutral-900">
                   {{ formatGenres(movieData?.generos) }}
                 </p>
               </div>
@@ -249,11 +252,11 @@ const formatYear = (fecha?: string) => {
               <!-- Sinopsis -->
               <div v-if="movieData?.sinopsis" class="text-left">
                 <h3
-                  class="mb-2 text-sm font-semibold tracking-wide text-gray-300 uppercase"
+                  class="mb-2 text-sm font-semibold tracking-wide text-neutral-900 uppercase"
                 >
                   Sinopsis
                 </h3>
-                <p class="text-sm leading-relaxed text-gray-200">
+                <p class="text-sm leading-relaxed text-neutral-900">
                   {{ movieData.sinopsis }}
                 </p>
               </div>
@@ -266,7 +269,7 @@ const formatYear = (fecha?: string) => {
                 class="text-left"
               >
                 <h3
-                  class="mb-2 text-sm font-semibold tracking-wide text-gray-300 uppercase"
+                  class="mb-2 text-sm font-semibold tracking-wide text-neutral-900 uppercase"
                 >
                   Disponible en
                 </h3>
@@ -274,7 +277,7 @@ const formatYear = (fecha?: string) => {
                   <span
                     v-for="plataforma in movieData.plataformas"
                     :key="plataforma.id"
-                    class="rounded-full bg-gray-700 px-3 py-1 text-xs text-white"
+                    class="rounded-full bg-neutral-600 px-3 py-1 text-xs font-bold text-neutral-200"
                   >
                     {{ plataforma.nombre }}
                   </span>
@@ -284,9 +287,9 @@ const formatYear = (fecha?: string) => {
               <!-- Películas Similares -->
               <div class="text-left">
                 <h3
-                  class="mb-3 text-sm font-semibold tracking-wide text-gray-300 uppercase"
+                  class="mb-3 text-sm font-semibold tracking-wide text-neutral-900 uppercase"
                 >
-                  Filmes Similares
+                  Films Similares
                 </h3>
 
                 <!-- Loading state -->
@@ -332,22 +335,22 @@ const formatYear = (fecha?: string) => {
                         class="absolute inset-0 flex flex-col justify-end bg-black/70 p-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                       >
                         <div
-                          class="mb-1 line-clamp-2 text-xs font-semibold text-white"
+                          class="text-md flex items-center font-bold text-gray-300"
                         >
-                          {{ movie.titulo }}
-                        </div>
-                        <div class="flex items-center text-xs text-gray-300">
-                          <span class="mr-1 text-yellow-400">★</span>
-                          <span>{{
-                            movie.ratingPelicula?.toFixed(1) || "N/A"
-                          }}</span>
+                          <span
+                            >{{
+                              typeof movie.score === "number"
+                                ? (movie.score * 100).toFixed(0)
+                                : "N/A"
+                            }}%
+                          </span>
                         </div>
                       </div>
                     </div>
 
                     <!-- Botón con nombre de película -->
                     <button
-                      class="line-clamp-2 w-full rounded bg-orange-500 px-2 py-1 text-[10px] font-bold tracking-wide text-white uppercase transition-colors duration-200 hover:bg-orange-600"
+                      class="line-clamp-2 w-full cursor-pointer rounded bg-neutral-700 px-2 py-1 text-[10px] font-bold tracking-wide uppercase transition-colors duration-200 hover:bg-neutral-600"
                     >
                       {{ movie.titulo }}
                     </button>

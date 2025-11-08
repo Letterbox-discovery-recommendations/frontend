@@ -29,7 +29,6 @@ async function handleLogin() {
     console.log("Form data:", formData.toString());
 
     const auth = useAuthStore();
-
     await auth.login(formData);
   } catch (error) {
     console.error("Error al iniciar sesión:", error);
@@ -89,8 +88,11 @@ async function handleLogin() {
       </div>
       <div class="mt-2 flex flex-col items-center gap-1">
         <span class="text-sm text-gray-400">¿No tenés cuenta?</span>
-        <NuxtLink to="/register" class="text-sm text-red-400 hover:underline"
-          >Registrate gratis</NuxtLink
+        <a
+          href="http://users-prod-frontend-alb-1401671528.us-east-1.elb.amazonaws.com"
+          target="_blank"
+          class="text-sm text-red-400 hover:underline"
+          >Registrate gratis</a
         >
       </div>
     </div>
