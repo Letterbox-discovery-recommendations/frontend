@@ -5,6 +5,7 @@
 .nitro
 .cache
 dist
+eslint
 
 # Node dependencies
 node_modules

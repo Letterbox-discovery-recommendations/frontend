@@ -9,6 +9,7 @@ export default defineNuxtConfig({
     "@nuxtjs/seo",
     "@pinia/nuxt",
     "nuxt-graphql-client",
+    "@nuxt/test-utils/module",
   ],
   css: ["~/main.css"],
 

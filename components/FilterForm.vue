@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 const filterStore = useFilterStore();
 
 const { data: genres } = useAsyncGql({
@@ -55,7 +56,6 @@ const selectedGenero = ref([]);
 const selectedDuracion = ref();
 const selectedPlataforma = ref([]);
 
-// Watch for changes in filter selections and automatically update store
 watch(
   [
     selectedSort,
