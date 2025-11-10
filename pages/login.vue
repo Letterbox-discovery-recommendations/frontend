@@ -89,7 +89,7 @@ async function handleLogin() {
       <div class="mt-2 flex flex-col items-center gap-1">
         <span class="text-sm text-gray-400">¿No tenés cuenta?</span>
         <a
-          href="http://users-prod-frontend-alb-1401671528.us-east-1.elb.amazonaws.com"
+          href="https://usuarios.cine-track.com.ar"
           target="_blank"
           class="text-sm text-red-400 hover:underline"
           >Registrate gratis</a

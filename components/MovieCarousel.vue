@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 interface Movie {
   id: number;
   titulo: string;
@@ -22,12 +21,12 @@ const authStore = useAuthStore();
 
 const value = ref("");
 
-const { data: genres } = await useAsyncGql({
-  operation: "GetGenres",
-});
-
 const { data: platforms } = await useAsyncGql({
   operation: "GetPlatforms",
+});
+
+const { data: genres } = await useAsyncGql({
+  operation: "GetGenres",
 });
 
 const dropdownItems = computed(() => {
@@ -126,6 +125,7 @@ watch(value, () => {
 
 onMounted(() => {
   fetchMovies();
+  console.log(dropdownItems.value);
 });
 </script>
 <template>
@@ -158,8 +158,12 @@ onMounted(() => {
     </div>
 
     <!-- Movie carousel -->
+    <div v-if="!isLoading && movies.length === 0" class="py-8 text-center">
+      <p class="text-lg text-gray-300">No hay películas disponibles</p>
+    </div>
+
     <UCarousel
-      v-else
+      v-else-if="!isLoading"
       v-slot="{ item }"
       arrows
       :items="movies"

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 const filterStore = useFilterStore();
 
 const { data: genres } = useAsyncGql({
@@ -41,13 +40,14 @@ const duracionItems = ref([
   "Menos de 90 min",
   "Cualquiera",
 ]);
+
 const sortItems = ref([
-  "titulo",
-  "titulo_desc",
-  "duracionMinutos",
-  "duracionMinutos_desc",
-  "fechaEstreno",
-  "fechaEstreno_desc",
+  { label: "Título (A-Z)", value: "titulo" },
+  { label: "Título (Z-A)", value: "titulo_desc" },
+  { label: "Duración (menor a mayor)", value: "duracionMinutos" },
+  { label: "Duración (mayor a menor)", value: "duracionMinutos_desc" },
+  { label: "Fecha de estreno (más reciente)", value: "fechaEstreno" },
+  { label: "Fecha de estreno (más antigua)", value: "fechaEstreno_desc" },
 ]);
 
 const selectedSort = ref();
@@ -143,6 +143,7 @@ const handleClear = () => {
     />
     <USelectMenu
       v-model="selectedSort"
+      value-key="value"
       placeholder="Ordenar por"
       :items="sortItems"
       value-attribute="value"
