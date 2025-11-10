@@ -22,6 +22,7 @@ jobs:
         run: yarn generate 
         env: 
           NUXT_BACKEND: ${{ secrets.NUXT_BACKEND }}
+          NUXT_GRAPHQL_BACKEND: ${{ secrets.NUXT_GRAPHQL_BACKEND }}
           NUXT_PUBLIC_SITE_URL: ${{ secrets.CLOUDFRONT_URL }}
       
       - name: Verify output
@@ -53,4 +54,4 @@ jobs:
       - name: Upload to S3
         run: aws s3 sync .output/public s3://${{ secrets.S3_BUCKET }} --delete
       - name: Invalidate CloudFront cache
-        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*" 
