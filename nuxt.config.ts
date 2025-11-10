@@ -23,6 +23,7 @@ export default defineNuxtConfig({
     public: {
       GQL_HOST: process.env.NUXT_GRAPHQL_BACKEND,
       backendUrl: process.env.NUXT_BACKEND,
+      usersUrl: process.env.NUXT_USERS_URL,
     },
   },
 });
