@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { useRouter } from "vue-router";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
@@ -7,16 +8,16 @@ export const useAuthStore = defineStore("auth", {
   }),
   actions: {
     async login(formData) {
-      const response = await $fetch(
-        "http://users-prod-alb-1703954385.us-east-1.elb.amazonaws.com/api/v1/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: formData,
+      const config = useRuntimeConfig();
+      const baseUrl = config.public.usersUrl;
+
+      const response = await $fetch(`https://usuariosbe.cine-track.com.ar/api/v1/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-      );
+        body: formData,
+      });
 
       this.token = response.access_token;
 
@@ -25,27 +26,7 @@ export const useAuthStore = defineStore("auth", {
 
       console.log("Token guardado:", this.token);
       console.log("User ID guardado:", this.userId);
-    },
-
-    async register(body) {
-      const response = await $fetch(
-        "http://users-prod-alb-1703954385.us-east-1.elb.amazonaws.com/api/v1/auth/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: body,
-        },
-      );
-
-      const formData = new URLSearchParams();
-      formData.append("grant_type", "password");
-      formData.append("username", response.username);
-      formData.append("password", response.password);
-      formData.append("scope", "");
-
-      this.login();
+      await navigateTo("/");
     },
 
     logout() {

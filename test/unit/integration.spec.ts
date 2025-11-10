@@ -10,10 +10,17 @@ global.$fetch = Object.assign(vi.fn(), {
   create: vi.fn(),
 })
 
+// Mock Nuxt runtime config used by the auth store
+// (useRuntimeConfig will be mocked per-test in beforeEach)
+
 describe('Integración: Auth + Modal + Search Stores', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
+    // Mock Nuxt runtime config used by the auth store for each test
+    ;(globalThis as any).useRuntimeConfig = () => ({ public: { usersUrl: 'http://test' } } as any)
+    // Mock navigateTo used inside the auth store (Nuxt helper)
+    ;(globalThis as any).navigateTo = vi.fn()
   })
 
   it('flujo completo de login → búsqueda → abrir modal → logout', async () => {
@@ -23,7 +30,7 @@ describe('Integración: Auth + Modal + Search Stores', () => {
 
     // Simulamos login exitoso
     const fakePayload = { user_id: 42 }
-    const fakeToken = ['h', btoa(JSON.stringify(fakePayload)), 's'].join('.')
+  const fakeToken = ['h', Buffer.from(JSON.stringify(fakePayload)).toString('base64'), 's'].join('.')
 
     ;(global.$fetch as any).mockResolvedValueOnce({
       access_token: fakeToken,
@@ -46,7 +53,7 @@ describe('Integración: Auth + Modal + Search Stores', () => {
     expect(modalStore.selectedMovie).toEqual(movie)
 
     // Logout → debería limpiar auth, pero no otros stores (por ahora)
-    authStore.logout()
+  await authStore.logout()
     expect(authStore.userId).toBeNull()
     expect(authStore.token).toBeNull()
 
@@ -75,7 +82,7 @@ describe('Integración: Auth + Modal + Search Stores', () => {
     modalStore.openModal({ id: 5, title: 'Matrix' })
 
     // Logout y limpieza
-    authStore.logout()
+  await authStore.logout()
     searchStore.clearSearch()
     modalStore.closeModal()
 

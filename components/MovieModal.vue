@@ -44,89 +44,52 @@ interface Movie {
   plataformas?: Platform[];
   elenco?: CastMember[];
   ratingPelicula?: number;
+  score?: number;
 }
 
 const modalStore = useModalStore();
 const { isOpen, selectedMovie } = storeToRefs(modalStore);
 
-// Funcionalidad para manejar visitas a películas
 const authStore = useAuthStore();
-const recentVisits = new Map<number, number>();
-const DEBOUNCE_TIME = 5000; // 5 segundos para evitar múltiples visitas
 
-const sendMovieVisit = async (movieId: number) => {
-  // Verificar si el usuario está autenticado
-  if (!authStore.userId) {
-    console.log("Usuario no autenticado, no se enviará la visita");
-    return;
-  }
-
-  // Verificar debounce - evitar múltiples visitas en corto período
-  const now = Date.now();
-  const lastVisit = recentVisits.get(movieId);
-
-  if (lastVisit && now - lastVisit < DEBOUNCE_TIME) {
-    console.log("Visita reciente detectada, omitiendo envío");
-    return;
-  }
-
-  try {
-    // Registrar la visita actual
-    recentVisits.set(movieId, now);
-
-    // Crear el cuerpo del evento según la especificación
-    const currentDate = new Date();
-    const eventBody = {
-      id: `visit-${movieId}-${authStore.userId}-${now}`,
-      type: "pelicula.visitada",
-      source: "/discovery/api",
-      datacontenttype: "application/json",
-      sysDate: [
-        currentDate.getFullYear(),
-        currentDate.getMonth() + 1, // JavaScript months are 0-indexed
-        currentDate.getDate(),
-        currentDate.getHours(),
-        currentDate.getMinutes(),
-      ],
-      data: {
-        evento: "pelicula_visitada",
-        movie_id: movieId,
-        user_id: authStore.userId,
-      },
-      _origin: "core",
-    };
-
-    // Enviar al endpoint especificado
-    const response = await $fetch(
-      "http://core-letterboxd.us-east-2.elasticbeanstalk.com/events/receive?routingKey=discovery.pelicula.visitada",
-      {
-        method: "POST",
-        body: eventBody,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    console.log("Visita a película enviada exitosamente:", {
-      movieId,
-      userId: authStore.userId,
-      response,
-    });
-  } catch (error) {
-    console.error("Error enviando visita a película:", error);
-    // Remover de la cache en caso de error para permitir retry
-    recentVisits.delete(movieId);
-  }
-};
+// Usar el composable para manejar visitas a películas
+const { sendMovieVisit } = useMovieVisit();
 
 // Estado para los datos completos de la película
 const movieData = ref<Movie | null>(null);
 const loading = ref(false);
 
+// Estado para películas similares
+const similarMovies = ref<Movie[]>([]);
+const loadingSimilar = ref(false);
+
+// Función para cargar películas similares
+const loadSimilarMovies = async (movieId: number) => {
+  loadingSimilar.value = true;
+  try {
+    const config = useRuntimeConfig();
+    const baseUrl = config.public.backendUrl;
+
+    const response = await $fetch<Array<{ movie: Movie; score: number }>>(
+      `${baseUrl}/api/v1/recommendations/similar/${movieId}`,
+    );
+
+    // Extraer solo las películas del array de respuesta
+    similarMovies.value = response
+      ? response.map((item) => ({ ...item.movie, score: item.score }))
+      : [];
+  } catch (error) {
+    console.error("Error cargando películas similares:", error);
+    similarMovies.value = [];
+  } finally {
+    loadingSimilar.value = false;
+  }
+};
+
 const closeModal = () => {
   modalStore.closeModal();
   movieData.value = null;
+  similarMovies.value = [];
 };
 
 watch(selectedMovie, async (newMovie) => {
@@ -144,6 +107,9 @@ watch(selectedMovie, async (newMovie) => {
       // Enviar visita a película cuando se carga exitosamente
       if (movieData.value?.id) {
         await sendMovieVisit(movieData.value.id);
+        // Cargar películas similares
+
+        await loadSimilarMovies(movieData.value.id);
       }
     } catch (error) {
       console.error("Error loading movie data:", error);
@@ -152,6 +118,8 @@ watch(selectedMovie, async (newMovie) => {
       // Enviar visita incluso con datos básicos si hay ID
       if ((newMovie as any).id) {
         await sendMovieVisit((newMovie as any).id);
+        // Cargar películas similares
+        await loadSimilarMovies((newMovie as any).id);
       }
     } finally {
       loading.value = false;
@@ -193,10 +161,10 @@ const formatYear = (fecha?: string) => {
         @click.self="closeModal"
       >
         <div
-          class="relative mx-4 w-full max-w-4xl overflow-hidden rounded-lg border border-gray-600/30 bg-[#334455] shadow-2xl"
+          class="relative mx-4 max-h-[90vh] w-full max-w-6xl overflow-hidden overflow-y-auto rounded-lg bg-neutral-500 shadow-2xl"
         >
           <button
-            class="absolute top-4 left-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
+            class="absolute top-4 left-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 transition-colors hover:bg-black/70"
             @click="closeModal"
           >
             <svg
@@ -237,13 +205,13 @@ const formatYear = (fecha?: string) => {
               <!-- Título y año -->
               <div class="text-left">
                 <h2
-                  class="font-oswald text-2xl font-bold tracking-wide text-white uppercase"
+                  class="font-oswald text-2xl font-bold tracking-wide text-neutral-900 uppercase"
                 >
                   {{ movieData?.titulo }}
                 </h2>
                 <p
                   v-if="movieData?.fechaEstreno"
-                  class="mt-1 text-sm text-gray-400"
+                  class="mt-1 text-sm font-medium text-gray-300"
                 >
                   Dirigida por
                   {{ movieData?.director?.nombre || "Director desconocido" }} •
@@ -272,11 +240,11 @@ const formatYear = (fecha?: string) => {
               <!-- Géneros -->
               <div class="text-left">
                 <h3
-                  class="mb-1 text-sm font-semibold tracking-wide text-gray-300 uppercase"
+                  class="mb-1 text-sm font-semibold tracking-wide text-neutral-900 uppercase"
                 >
                   Géneros
                 </h3>
-                <p class="text-white">
+                <p class="text-neutral-900">
                   {{ formatGenres(movieData?.generos) }}
                 </p>
               </div>
@@ -284,11 +252,11 @@ const formatYear = (fecha?: string) => {
               <!-- Sinopsis -->
               <div v-if="movieData?.sinopsis" class="text-left">
                 <h3
-                  class="mb-2 text-sm font-semibold tracking-wide text-gray-300 uppercase"
+                  class="mb-2 text-sm font-semibold tracking-wide text-neutral-900 uppercase"
                 >
                   Sinopsis
                 </h3>
-                <p class="text-sm leading-relaxed text-gray-200">
+                <p class="text-sm leading-relaxed text-neutral-900">
                   {{ movieData.sinopsis }}
                 </p>
               </div>
@@ -301,7 +269,7 @@ const formatYear = (fecha?: string) => {
                 class="text-left"
               >
                 <h3
-                  class="mb-2 text-sm font-semibold tracking-wide text-gray-300 uppercase"
+                  class="mb-2 text-sm font-semibold tracking-wide text-neutral-900 uppercase"
                 >
                   Disponible en
                 </h3>
@@ -309,10 +277,89 @@ const formatYear = (fecha?: string) => {
                   <span
                     v-for="plataforma in movieData.plataformas"
                     :key="plataforma.id"
-                    class="rounded-full bg-gray-700 px-3 py-1 text-xs text-white"
+                    class="rounded-full bg-neutral-600 px-3 py-1 text-xs font-bold text-neutral-200"
                   >
                     {{ plataforma.nombre }}
                   </span>
+                </div>
+              </div>
+
+              <!-- Películas Similares -->
+              <div class="text-left">
+                <h3
+                  class="mb-3 text-sm font-semibold tracking-wide text-neutral-900 uppercase"
+                >
+                  Films Similares
+                </h3>
+
+                <!-- Loading state -->
+                <div
+                  v-if="loadingSimilar"
+                  class="flex items-center justify-center py-8"
+                >
+                  <div class="text-sm text-gray-400">
+                    Cargando películas similares...
+                  </div>
+                </div>
+
+                <!-- Películas similares grid -->
+                <div
+                  v-else-if="similarMovies.length > 0"
+                  class="grid grid-cols-5 gap-2"
+                >
+                  <div
+                    v-for="movie in similarMovies"
+                    :key="movie.id"
+                    class="group cursor-pointer"
+                    @click="modalStore.openModal(movie)"
+                  >
+                    <!-- Poster -->
+                    <div
+                      class="relative mb-2 aspect-[2/3] overflow-hidden rounded-lg bg-gray-700"
+                    >
+                      <NuxtImg
+                        v-if="movie.posterUrl"
+                        :src="movie.posterUrl"
+                        :alt="movie.titulo"
+                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
+                      <div
+                        v-else
+                        class="flex h-full w-full items-center justify-center text-xs text-gray-500"
+                      >
+                        Sin imagen
+                      </div>
+
+                      <!-- Overlay con info al hover -->
+                      <div
+                        class="absolute inset-0 flex flex-col justify-end bg-black/70 p-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                      >
+                        <div
+                          class="text-md flex items-center font-bold text-gray-300"
+                        >
+                          <span
+                            >{{
+                              typeof movie.score === "number"
+                                ? (movie.score * 100).toFixed(0)
+                                : "N/A"
+                            }}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Botón con nombre de película -->
+                    <button
+                      class="line-clamp-2 w-full cursor-pointer rounded bg-neutral-700 px-2 py-1 text-[10px] font-bold tracking-wide uppercase transition-colors duration-200 hover:bg-neutral-600"
+                    >
+                      {{ movie.titulo }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Estado vacío -->
+                <div v-else class="py-8 text-center text-sm text-gray-400">
+                  No hay películas similares disponibles
                 </div>
               </div>
             </div>
@@ -343,5 +390,23 @@ const formatYear = (fecha?: string) => {
 .modal-enter-from .modal-content,
 .modal-leave-to .modal-content {
   transform: scale(0.9);
+}
+
+/* Estilos para el scrollbar */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 </style>

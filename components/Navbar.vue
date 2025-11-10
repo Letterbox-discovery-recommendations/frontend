@@ -1,4 +1,136 @@
 <script setup lang="ts">
+interface Friend {
+  id: string;
+  name: string;
+  country: string;
+  registration_date: string;
+  profile_picture_url?: string;
+}
+
+interface Movie {
+  id: number;
+  titulo: string;
+  posterUrl?: string;
+  sinopsis?: string;
+  duracionMinutos?: number;
+  fechaEstreno?: string;
+}
+
+interface GroupRecommendation {
+  movie: Movie;
+  score: number;
+}
+
+// Friends modal state
+const friendsSearchInput = ref("");
+const selectedFriends = ref<string[]>([]);
+const isGenerating = ref(false);
+const amigos = ref<Friend[]>([]);
+const isLoadingFriends = ref(false);
+
+// Fetch friends from API
+const fetchFriends = async () => {
+  try {
+    isLoadingFriends.value = true;
+    const config = useRuntimeConfig();
+    const baseUrl = config.public.backendUrl;
+
+    const response = await $fetch<Friend[]>(
+      `${baseUrl}/api/v1/recommendations/friends`,
+      {
+        headers: {
+          Authorization: `Bearer ${authStore.token}`,
+        },
+      },
+    );
+
+    amigos.value = response;
+  } catch (error) {
+    console.error("Error fetching friends:", error);
+  } finally {
+    isLoadingFriends.value = false;
+  }
+};
+
+// Computed filtered friends list
+const filteredFriends = computed(() => {
+  if (!friendsSearchInput.value.trim()) {
+    return amigos.value;
+  }
+  const searchTerm = friendsSearchInput.value.toLowerCase();
+  return amigos.value.filter((amigo) =>
+    amigo.name.toLowerCase().includes(searchTerm),
+  );
+});
+
+// Toggle friend selection
+const toggleFriendSelection = (friendId: string) => {
+  const index = selectedFriends.value.indexOf(friendId);
+  if (index > -1) {
+    selectedFriends.value.splice(index, 1);
+  } else {
+    selectedFriends.value.push(friendId);
+  }
+};
+
+// Check if friend is selected
+const isFriendSelected = (friendId: string) => {
+  return selectedFriends.value.includes(friendId);
+};
+
+// Generate collaborative recommendations
+const generateGroupRecommendations = async () => {
+  if (selectedFriends.value.length === 0) {
+    console.log("No se seleccionaron amigos");
+    return;
+  }
+
+  try {
+    isGenerating.value = true;
+    const config = useRuntimeConfig();
+    const baseUrl = config.public.backendUrl;
+
+    // Include the authenticated user ID along with selected friends
+    const userIds = [
+      parseInt(authStore.userId), // Current authenticated user
+      ...selectedFriends.value.map((id) => parseInt(id)), // Selected friends
+    ];
+
+    // Call API with POST request
+    const response = await $fetch<GroupRecommendation[]>(
+      `${baseUrl}/api/v1/recommendations/group`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${authStore.token}`,
+          "Content-Type": "application/json",
+        },
+        body: {
+          user_ids: userIds,
+        },
+      },
+    );
+
+    console.log("Recomendaciones grupales:", response);
+
+    // Store the recommendations and selected friends in the friends store
+    const friendsStore = useFriendsStore();
+    const selectedFriendsList = amigos.value.filter((friend) =>
+      selectedFriends.value.includes(friend.id),
+    );
+
+    friendsStore.setSelectedFriends(selectedFriendsList);
+    friendsStore.setGroupRecommendations(response);
+
+    // Navigate to the group recommendations page
+    await router.push("/group-recommendations");
+  } catch (error) {
+    console.error("Error generando recomendaciones:", error);
+  } finally {
+    isGenerating.value = false;
+  }
+};
+
 interface Director {
   id: number;
   nombre: string;
@@ -119,7 +251,12 @@ const handleQueVeoHoy = async () => {
 
     // Fetch collaborative recommendations
     const recommendations = await $fetch<(Movie | RecommendationItem)[]>(
-      `${baseUrl}/api/v1/recommendations/collaborative/${authStore.userId}`,
+      `${baseUrl}/api/v1/recommendations/collaborative`,
+      {
+        headers: {
+          Authorization: `Bearer ${authStore.token}`,
+        },
+      },
     );
 
     if (recommendations && recommendations.length > 0) {
@@ -215,6 +352,97 @@ const linksUser = [
       <UButton v-if="authStore.userId" @click="handleQueVeoHoy">
         ¿QUÉ VEO HOY?
       </UButton>
+
+      <UModal title="ELEGÍ TU GRUPO DE AMIGOS">
+        <UButton
+          v-if="authStore.userId"
+          icon="i-lucide-users"
+          class="bg-teal hover:bg-teal/80 active:bg-teal/70 cursor-pointer transition"
+          label="VER CON AMIGOS"
+          @click="fetchFriends"
+        />
+
+        <template #body>
+          <div class="flex flex-col gap-4">
+            <!-- Search bar -->
+            <UFormField label="Buscar amigos">
+              <UInput
+                v-model="friendsSearchInput"
+                placeholder="Para buscar amigos, ingresa su nombre de usuario."
+                class="w-full"
+                color="neutral"
+                variant="soft"
+                icon="i-lucide-search"
+                :disabled="isLoadingFriends"
+              />
+            </UFormField>
+
+            <!-- Loading state -->
+            <div
+              v-if="isLoadingFriends"
+              class="text-dimtext flex items-center justify-center gap-2 py-8"
+            >
+              <UIcon name="i-lucide-loader-2" class="animate-spin text-xl" />
+              <span>Cargando amigos...</span>
+            </div>
+
+            <!-- Friends list -->
+            <div v-else class="flex max-h-96 flex-col gap-2 overflow-y-auto">
+              <div
+                v-for="user in filteredFriends"
+                :key="user.id"
+                class="flex cursor-pointer items-center justify-between rounded-lg border-2 p-3 transition hover:bg-gray-50 dark:hover:bg-gray-800"
+                :class="{
+                  'border-cyan-500': isFriendSelected(user.id),
+                  'border-gray-200 dark:border-gray-700': !isFriendSelected(
+                    user.id,
+                  ),
+                }"
+                @click="toggleFriendSelection(user.id)"
+              >
+                <span class="flex items-center gap-2">
+                  <UIcon name="i-lucide-user" class="text-lg" />
+                  <span class="font-medium">{{ user.name }}</span>
+                </span>
+                <UIcon
+                  :name="
+                    isFriendSelected(user.id)
+                      ? 'i-lucide-check'
+                      : 'i-lucide-plus'
+                  "
+                  class="text-lg"
+                  :class="{
+                    'text-cyan-500': isFriendSelected(user.id),
+                  }"
+                />
+              </div>
+
+              <!-- Empty state -->
+              <div
+                v-if="filteredFriends.length === 0"
+                class="text-dimtext py-8 text-center"
+              >
+                No se encontraron amigos
+              </div>
+            </div>
+
+            <!-- Generate button -->
+            <UButton
+              class="bg-red hover:bg-red/80 mt-2 w-full font-bold text-white"
+              :disabled="
+                selectedFriends.length === 0 || isGenerating || isLoadingFriends
+              "
+              :loading="isGenerating"
+              @click="generateGroupRecommendations"
+            >
+              GENERAR RECOMENDACIONES
+              <template v-if="selectedFriends.length > 0">
+                ({{ selectedFriends.length }})
+              </template>
+            </UButton>
+          </div>
+        </template>
+      </UModal>
 
       <UInput
         v-model="searchInput"
