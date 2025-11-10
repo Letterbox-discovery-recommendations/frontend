@@ -11,7 +11,7 @@ export const useAuthStore = defineStore("auth", {
       const config = useRuntimeConfig();
       const baseUrl = config.public.usersUrl;
 
-      const response = await $fetch(`${baseUrl}/api/v1/auth/login`, {
+      const response = await $fetch(`https://usuariosbe.cine-track.com.ar/api/v1/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
