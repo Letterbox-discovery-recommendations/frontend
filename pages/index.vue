@@ -14,7 +14,7 @@ const handleLogin = () => {
 
 <template>
   <div
-    class="from-nav to-footer flex min-h-screen flex-col items-center space-y-16 bg-gradient-to-t p-12 px-4 md:px-16 lg:px-64"
+    class="from-nav to-footer flex min-h-screen flex-col items-center space-y-16 bg-gradient-to-t p-12 px-8 md:px-16 lg:px-32"
   >
     <div
       v-if="!authStore.userId"
@@ -31,7 +31,7 @@ const handleLogin = () => {
           Inicia sesión para disfrutar la experiencia completa
         </p>
         <UButton
-          class="bg-red px-8 py-3 text-lg font-bold text-white"
+          class="bg-red cursor-pointer px-8 py-3 text-lg font-bold text-white"
           @click="handleLogin"
         >
           Iniciar Sesión

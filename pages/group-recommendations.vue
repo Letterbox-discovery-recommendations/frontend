@@ -18,7 +18,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="bg-background min-h-screen">
+  <div
+    class="from-nav to-footer flex min-h-screen flex-col items-center space-y-16 bg-gradient-to-t p-12 px-8 md:px-16 lg:px-32"
+  >
     <div class="container mx-auto px-4 py-8">
       <!-- Header Section -->
       <div class="mb-8">
@@ -110,17 +112,6 @@ onUnmounted(() => {
         <p class="text-xl">No hay recomendaciones disponibles</p>
         <UButton
           class="bg-red hover:bg-red/80 mt-4 font-bold text-white"
-          @click="router.push('/')"
-        >
-          Volver al inicio
-        </UButton>
-      </div>
-
-      <!-- Back Button -->
-      <div class="mt-12 flex justify-center">
-        <UButton
-          icon="i-lucide-arrow-left"
-          class="bg-teal hover:bg-teal/80 font-bold text-black"
           @click="router.push('/')"
         >
           Volver al inicio

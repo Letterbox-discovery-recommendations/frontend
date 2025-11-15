@@ -6,3 +6,4 @@
     <MovieModal />
   </UApp>
 </template>
+
