@@ -112,8 +112,11 @@ const handleClear = () => {
 </script>
 
 <template>
-  <div class="flex items-center gap-4" @keydown="handleKeyDown">
-    <h2 class="text-base font-bold text-white">FILTRAR POR</h2>
+  <h2 class="m-2 p-2 text-base font-bold text-white">FILTRAR POR</h2>
+  <div
+    class="grid grid-cols-2 items-center gap-4 md:grid-cols-3 lg:grid-cols-5"
+    @keydown="handleKeyDown"
+  >
     <USelectMenu
       v-model="selectedEstreno"
       placeholder="Año de estreno"
@@ -150,10 +153,10 @@ const handleClear = () => {
       option-attribute="label"
       class="w-48"
     />
-    <UButton
-      class="bg-red hover:bg-red/80 px-4 font-bold text-white"
-      label="LIMPIAR"
-      @click="handleClear"
-    />
   </div>
+  <UButton
+    class="bg-red hover:bg-red/80 mt-4 cursor-pointer items-center justify-center px-4 text-center font-bold text-white"
+    label="LIMPIAR"
+    @click="handleClear"
+  />
 </template>

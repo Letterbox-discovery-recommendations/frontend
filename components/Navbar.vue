@@ -22,6 +22,7 @@ interface GroupRecommendation {
 }
 
 // Friends modal state
+const isFriendsModalOpen = ref(false);
 const friendsSearchInput = ref("");
 const selectedFriends = ref<string[]>([]);
 const isGenerating = ref(false);
@@ -122,6 +123,9 @@ const generateGroupRecommendations = async () => {
     friendsStore.setSelectedFriends(selectedFriendsList);
     friendsStore.setGroupRecommendations(response);
 
+    // Close the modal
+    isFriendsModalOpen.value = false;
+
     // Navigate to the group recommendations page
     await router.push("/group-recommendations");
   } catch (error) {
@@ -211,38 +215,36 @@ watch(
   },
 );
 
-// Handle search submission
-const handleSearch = async () => {
-  if (searchInput.value.trim()) {
+// Watch searchInput and update search automatically
+watch(searchInput, async (newValue) => {
+  if (newValue.trim()) {
     // Update search store
-    searchStore.setSearch(searchInput.value.trim());
+    searchStore.setSearch(newValue.trim());
 
-    // If ON films page, keep existing filters (like APLICAR button)
+    // If ON films page, keep existing filters
     if (route.path === "/films") {
       // Just update search, keep current filters - reactive query will handle it
-      // This mimics the APLICAR button behavior
     } else {
-      // If NOT on films page, store is already updated with current selections
-      // Clear filters and navigate (search by name only)
+      // If NOT on films page, clear filters and navigate
       const filterStore = useFilterStore();
       filterStore.clearFilters();
 
       await router.push({
         path: "/films",
-        query: { search: searchInput.value.trim() },
+        query: { search: newValue.trim() },
       });
     }
   } else {
     // If search is empty
     if (route.path === "/films") {
-      // Clear search but keep filters (like APLICAR with no search)
+      // Clear search but keep filters
       searchStore.clearSearch();
     } else {
       // Not on films page with empty search - navigate to films
       await router.push("/films");
     }
   }
-};
+});
 
 const handleQueVeoHoy = async () => {
   try {
@@ -285,6 +287,21 @@ const handleQueVeoHoy = async () => {
   }
 };
 
+const dropdownItems = computed(() => [
+  {
+    label: authStore.name ?? "",
+    icon: "i-lucide-user",
+  },
+  {
+    label: "Logout",
+    icon: "i-lucide-log-out",
+    onSelect: () => {
+      authStore.logout();
+      navigateTo("/");
+    },
+  },
+]);
+
 const links = [
   {
     text: "FILMS",
@@ -314,18 +331,23 @@ const linksUser = [
 
 <template>
   <div
-    class="bg-nav/90 border-nav sticky top-0 z-50 flex items-center justify-evenly border-b p-6 backdrop-blur-md"
+    class="bg-nav/90 border-nav sticky top-0 z-50 flex items-center justify-evenly gap-0 border-b p-6 backdrop-blur-md md:gap-2"
   >
     <NuxtLink class="flex items-center gap-5 text-2xl font-bold" to="/">
-      <NuxtImg src="/images/logo.png" alt="logo" width="54" height="37" />
-
-      <span class="text-white">cineTrack</span>
+      <NuxtImg
+        src="/images/logo.png"
+        alt="logo"
+        width="54"
+        height="37"
+        class="h-[29px] w-[42px] md:h-[37px] md:w-[54px]"
+      />
+      <p class="hidden text-white/80 md:block md:text-xl">cineTrack</p>
     </NuxtLink>
 
     <div class="flex items-center gap-8">
       <UButton
         v-if="!authStore.userId"
-        class="bg-red hover:bg-red/80 font-bold text-white"
+        class="bg-red hover:bg-red/80 cursor-pointer text-sm font-bold text-white md:text-base"
         @click="handleLogin"
         >INICIAR SESIÓN</UButton
       >
@@ -335,33 +357,40 @@ const linksUser = [
         :text="link.tooltip"
       >
         <NuxtLink
-          class="text-dimtext text-base font-bold transition hover:opacity-80"
+          class="text-dimtext text-sm font-bold transition hover:opacity-80 md:text-base"
           :to="link.url"
         >
           {{ link.text }}
         </NuxtLink>
       </UTooltip>
-      <UTooltip v-if="juego" text="Juego">
-        <UButton
-          class="bg-red hover:bg-red/80 cursor-pointer rounded-full p-2 transition"
-        >
-          <UIcon name="i-lucide-gamepad-2" class="size-7 text-white" />
-        </UButton>
-      </UTooltip>
 
-      <UButton v-if="authStore.userId" @click="handleQueVeoHoy">
-        ¿QUÉ VEO HOY?
+      <UButton
+        v-if="authStore.userId"
+        icon="i-lucide-eye"
+        class="bg-red cursor-pointer text-sm whitespace-nowrap text-white md:text-base"
+        @click="handleQueVeoHoy"
+      >
+        <p class="hidden md:block">¿QUÉ VEO HOY?</p>
       </UButton>
 
-      <UModal title="ELEGÍ TU GRUPO DE AMIGOS">
-        <UButton
-          v-if="authStore.userId"
-          icon="i-lucide-users"
-          class="bg-teal hover:bg-teal/80 active:bg-teal/70 cursor-pointer transition"
-          label="VER CON AMIGOS"
-          @click="fetchFriends"
-        />
+      <!-- Friends button trigger -->
+      <UButton
+        v-if="authStore.userId"
+        icon="i-lucide-users"
+        class="bg-teal hover:bg-teal/80 active:bg-teal/70 cursor-pointer text-sm whitespace-nowrap transition md:text-base"
+        @click="
+          isFriendsModalOpen = true;
+          fetchFriends();
+        "
+      >
+        <p class="hidden md:block">VER CON AMIGOS</p>
+      </UButton>
 
+      <!-- Friends Modal -->
+      <UModal
+        v-model:open="isFriendsModalOpen"
+        title="ELEGÍ TU GRUPO DE AMIGOS"
+      >
         <template #body>
           <div class="flex flex-col gap-4">
             <!-- Search bar -->
@@ -428,7 +457,7 @@ const linksUser = [
 
             <!-- Generate button -->
             <UButton
-              class="bg-red hover:bg-red/80 mt-2 w-full font-bold text-white"
+              class="bg-red hover:bg-red/80 mt-2 w-full cursor-pointer text-sm font-bold text-white md:text-base"
               :disabled="
                 selectedFriends.length === 0 || isGenerating || isLoadingFriends
               "
@@ -451,14 +480,20 @@ const linksUser = [
         color="info"
         variant="subtle"
         placeholder="Busca una película..."
-        @keyup.enter="handleSearch"
+        class="hidden lg:block"
       />
-      <UButton
-        v-if="authStore.userId"
-        class="bg-teal hover:bg-teal/80 font-bold text-black"
-        icon="i-lucide-log-out"
-        @click="authStore.logout()"
-      />
+
+      <UDropdownMenu v-if="authStore.userId" :items="dropdownItems">
+        <UAvatar
+          :alt="authStore.name ?? undefined"
+          :chip="{
+            inset: true,
+            color: 'success',
+          }"
+          class="cursor-pointer"
+          size="2xl"
+        />
+      </UDropdownMenu>
     </div>
   </div>
 </template>
