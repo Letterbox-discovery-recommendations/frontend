@@ -1,49 +1,74 @@
-<script setup>
+<script setup lang="ts">
+import { z } from "zod";
+import type { FormSubmitEvent } from "@nuxt/ui";
+const toast = useToast();
+
 useSeoMeta({
   title: "cineTrack - Iniciar Sesión",
   description:
     "Inicia sesión en tu cuenta para acceder a recomendaciones personalizadas.",
 });
 
-const username = ref("");
-const password = ref("");
+const schema = z.object({
+  username: z.string().min(1, "Por favor ingresa un nombre de usuario válido."),
+  password: z.string().min(1, "Por favor ingresa tu contraseña."),
+});
 
-async function handleLogin() {
-  if (!username.value || !password.value) {
-    console.error("Por favor completa todos los campos");
-    return;
-  }
+type Schema = z.output<typeof schema>;
 
-  console.log("Sending login data:", {
-    username: username.value,
-    password: password.value,
-  });
+const state = reactive<Partial<Schema>>({
+  username: undefined,
+  password: undefined,
+});
+
+const showPsswd = ref(false);
+
+async function onSubmit(event: FormSubmitEvent<Schema>) {
+  console.log("Sending login data:", event.data);
 
   try {
     const formData = new URLSearchParams();
     formData.append("grant_type", "password");
-    formData.append("username", username.value);
-    formData.append("password", password.value);
+    formData.append("username", event.data.username);
+    formData.append("password", event.data.password);
     formData.append("scope", "");
 
     console.log("Form data:", formData.toString());
 
     const auth = useAuthStore();
     await auth.login(formData);
+    if (state.username && state.username.length > 0) {
+      auth.setName(state.username);
+    }
+
+    toast.add({
+      title: "Inicio de sesión exitoso",
+      description: `¡Bienvenido de nuevo, ${event.data.username}!`,
+      color: "success",
+      icon: "i-lucide-check-circle",
+    });
   } catch (error) {
     console.error("Error al iniciar sesión:", error);
     console.error("Full error object:", JSON.stringify(error, null, 2));
+    toast.add({
+      title: "Error al iniciar sesión",
+      description: "Revisa tus credenciales e intentá nuevamente.",
+      color: "error",
+      icon: "i-lucide-alert-circle",
+    });
   }
 }
 </script>
 
 <template>
-  <form
+  <div
     class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 px-4 py-8"
-    @submit.prevent="handleLogin"
   >
-    <div
+    <UForm
+      :schema="schema"
+      :state="state"
       class="flex w-full max-w-md flex-col gap-8 rounded-xl border border-white/10 bg-white/10 p-8 shadow-xl backdrop-blur-md"
+      @submit="onSubmit"
     >
       <div class="flex flex-col items-center gap-2">
         <NuxtImg
@@ -60,29 +85,45 @@ async function handleLogin() {
         </p>
       </div>
       <div class="flex flex-col gap-4">
-        <UFormField description="Ingresa tu nombre de usuario.">
+        <UFormField label="Nombre de usuario" name="username">
           <UInput
-            v-model="username"
+            v-model="state.username"
             placeholder="Ingresa tu nombre de usuario"
             size="lg"
             class="w-full"
           />
         </UFormField>
 
-        <UFormField description="Ingresa tu contraseña.">
+        <UFormField label="Contraseña" name="password">
           <UInput
-            v-model="password"
+            v-model="state.password"
             placeholder="Ingresa tu contraseña"
-            type="password"
+            :type="showPsswd ? 'text' : 'password'"
             size="lg"
             class="w-full"
-          />
+            :ui="{ trailing: 'pe-1' }"
+          >
+            <template #trailing>
+              <UButton
+                color="neutral"
+                variant="link"
+                size="sm"
+                :icon="showPsswd ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                :aria-label="
+                  showPsswd ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                "
+                :aria-pressed="showPsswd"
+                aria-controls="password"
+                @click="showPsswd = !showPsswd"
+              />
+            </template>
+          </UInput>
         </UFormField>
 
         <UButton
           label="Iniciar sesión"
           size="lg"
-          class="bg-red mt-2 flex items-center justify-center text-center font-bold text-white"
+          class="bg-red mt-2 flex cursor-pointer items-center justify-center text-center font-bold text-white"
           type="submit"
         />
       </div>
@@ -95,6 +136,13 @@ async function handleLogin() {
           >Registrate gratis</a
         >
       </div>
-    </div>
-  </form>
+    </UForm>
+  </div>
 </template>
+
+<style>
+/* Hide the password reveal button in Edge */
+::-ms-reveal {
+  display: none;
+}
+</style>

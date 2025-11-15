@@ -7,7 +7,7 @@ useSeoMeta({
 
 <template>
   <div
-    class="from-nav to-footer flex flex-col items-center space-y-16 bg-gradient-to-t p-12 px-4 md:px-16 lg:px-64"
+    class="from-nav to-footer flex flex-col items-center space-y-16 bg-gradient-to-t p-12 px-4 md:px-16 lg:px-32"
   >
     <MovieCarousel title="Top global" endpoint="global" class="w-full" />
     <MovieCarousel title="Virales" endpoint="viral" class="w-full" />

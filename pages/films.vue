@@ -143,7 +143,7 @@ useSeoMeta({
       </div>
 
       <!-- Movies grid -->
-      <div class="mb-8 grid grid-cols-6 gap-6">
+      <div class="mb-8 grid grid-cols-3 gap-6 md:grid-cols-6">
         <Movie
           v-for="movie in paginatedMovies"
           :id="movie.id"

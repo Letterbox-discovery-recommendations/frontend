@@ -165,9 +165,8 @@ onMounted(() => {
     <UCarousel
       v-else-if="!isLoading"
       v-slot="{ item }"
-      arrows
       :items="movies"
-      :ui="{ item: 'basis-1/5' }"
+      :ui="{ item: 'basis-1/3 md:basis-1/4 lg:basis-1/5' }"
     >
       <Movie v-bind="getMovieData(item)" />
     </UCarousel>
