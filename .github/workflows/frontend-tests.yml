@@ -1,4 +1,4 @@
-name: Frontend Tests and Upload PDF to S3
+name: Frontend Tests and Generate PDF
 
 on:
   push:
@@ -8,18 +8,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-and-upload:
+  test-and-generate-pdf:
     runs-on: ubuntu-latest
-    environment: test-aws
 
     permissions:
       contents: read
-      id-token: write
 
     env:
-      AWS_REGION: us-east-2
-      S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
-      S3_DESTINATION_PREFIX: frontend/
       PDF_FILE_NAME: ${{ github.sha }}.pdf
 
     steps:
@@ -155,39 +150,24 @@ jobs:
         run: |
           set -euo pipefail
           if [ ! -f "REPORTES/${PDF_FILE_NAME}" ]; then
-            echo "No se generó REPORTES/${PDF_FILE_NAME}. Se omitirá la subida a S3."
-            exit 2
+            echo "⚠️ No se generó REPORTES/${PDF_FILE_NAME}"
+            exit 1
           fi
 
-      - name: Configure AWS credentials
-        if: github.event_name == 'push' && always()
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Upload PDF as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Upload PDF to S3
-        if: github.event_name == 'push' && (success() || failure())
-        run: |
-          set -euo pipefail
-          if [ ! -f "REPORTES/${PDF_FILE_NAME}" ]; then
-            echo "No hay PDF para subir. Saliendo sin error."
-            exit 0
-          fi
-          DEST="s3://${S3_BUCKET_NAME}/${S3_DESTINATION_PREFIX}${PDF_FILE_NAME}"
-          echo "Subiendo ${PDF_FILE_NAME} a ${DEST}"
-          aws s3 cp "REPORTES/${PDF_FILE_NAME}" "${DEST}" --only-show-errors
+          name: test-report-pdf
+          path: REPORTES/${{ env.PDF_FILE_NAME }}
+          retention-days: 30
 
       - name: Summary
         if: always()
         run: |
           if [ -f "REPORTES/${PDF_FILE_NAME}" ]; then
-            if [ "${{ github.event_name }}" == "push" ]; then
-              echo "PDF subido a s3://${S3_BUCKET_NAME}/${S3_DESTINATION_PREFIX}${PDF_FILE_NAME}"
-            else
-              echo "PDF generado (PR) - no se sube a S3"
-            fi
+            echo "✅ PDF generado y guardado como artefacto"
+            ls -lh "REPORTES/${PDF_FILE_NAME}"
           else
-            echo "No se generó PDF."
+            echo "❌ No se generó el PDF"
           fi
