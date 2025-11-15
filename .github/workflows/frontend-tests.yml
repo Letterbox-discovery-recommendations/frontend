@@ -33,117 +33,27 @@ jobs:
       - name: Prepare REPORTES dir
         run: mkdir -p REPORTES
 
-      - name: Generate cover.html
+      - name: Download templates and CSS from coverage_reportes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_API: https://api.github.com/repos/Letterbox-discovery-recommendations/coverage_reportes/contents
+          REF: main
         run: |
-          cat > REPORTES/cover.html << 'EOF'
-          <!DOCTYPE html>
-          <html lang="es">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Reporte de Tests y Coverage</title>
-            <style>
-              body {
-                margin: 0;
-                padding: 60px 40px;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-              }
-              .cover {
-                background: white;
-                padding: 80px 60px;
-                border-radius: 12px;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                max-width: 700px;
-                text-align: center;
-              }
-              h1 {
-                color: #667eea;
-                font-size: 42px;
-                margin: 0 0 30px 0;
-                font-weight: 700;
-              }
-              .subtitle {
-                color: #666;
-                font-size: 18px;
-                margin-bottom: 60px;
-              }
-              .metadata {
-                text-align: left;
-                background: #f8f9fa;
-                padding: 30px;
-                border-radius: 8px;
-                margin: 40px 0;
-              }
-              .metadata-item {
-                margin: 15px 0;
-                font-size: 15px;
-              }
-              .label {
-                color: #667eea;
-                font-weight: 600;
-              }
-              .value {
-                color: #333;
-                margin-left: 10px;
-              }
-              hr {
-                border: none;
-                border-top: 2px solid #667eea;
-                margin: 40px 0;
-              }
-              .footer {
-                color: #999;
-                font-size: 12px;
-                margin-top: 30px;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="cover">
-              <h1>📊 Reporte de Tests y Coverage</h1>
-              <p class="subtitle">Frontend - Letterbox Discovery Recommendations</p>
-              
-              <hr>
-              
-              <div class="metadata">
-                <div class="metadata-item">
-                  <span class="label">Proyecto:</span>
-                  <span class="value">frontend</span>
-                </div>
-                <div class="metadata-item">
-                  <span class="label">Autor:</span>
-                  <span class="value">__actor__</span>
-                </div>
-                <div class="metadata-item">
-                  <span class="label">Fecha:</span>
-                  <span class="value">__date__</span>
-                </div>
-                <div class="metadata-item">
-                  <span class="label">Rama:</span>
-                  <span class="value">__ref_name__</span>
-                </div>
-                <div class="metadata-item">
-                  <span class="label">Commit:</span>
-                  <span class="value" style="font-family: monospace; font-size: 13px;">__sha__</span>
-                </div>
-                <div class="metadata-item">
-                  <span class="label">Workflow:</span>
-                  <span class="value">__workflow__</span>
-                </div>
-              </div>
-              
-              <hr>
-              
-              <p class="footer">Reporte generado automáticamente. Verifica que los placeholders hayan sido reemplazados correctamente.</p>
-            </div>
-          </body>
-          </html>
-          EOF
+          set -euo pipefail
+          download_raw() {
+            local file="$1"
+            echo "📥 Descargando $file..."
+            curl -H "Authorization: token ${GH_TOKEN}" \
+                 -H "Accept: application/vnd.github.v3.raw" \
+                 -fsSL "${BASE_API}/${file}?ref=${REF}" \
+                 -o "REPORTES/${file}" || echo "⚠️  No se pudo descargar $file"
+          }
+          download_raw cover.html
+          download_raw cover.css
+          download_raw coverage.css
+          download_raw pytest.css
+          echo "✅ Descargas completadas"
+          ls -lah REPORTES/
 
       - name: Fill cover.html metadata
         run: |
@@ -211,18 +121,30 @@ jobs:
         if: always()
         run: |
           set -euo pipefail
-          if [ -f REPORTES/coverage_html/index.html ]; then
-            if ! grep -q 'coverage.css' REPORTES/coverage_html/index.html; then
-              sed -i '0,/<head[^>]*>/s||&\
-            <link rel="stylesheet" href="../coverage.css">|' REPORTES/coverage_html/index.html
+          echo "🔨 Parchando archivos HTML con CSS..."
+          
+          # Agregar CSS a cover.html si no lo tiene
+          if [ -f REPORTES/cover.html ]; then
+            if ! grep -q '<link.*cover.css' REPORTES/cover.html; then
+              sed -i '/<head[^>]*>/a\    <link rel="stylesheet" href="cover.css">' REPORTES/cover.html || true
             fi
           fi
+          
+          # Agregar CSS a vitest_report.html
           if [ -f REPORTES/vitest_report.html ]; then
-            if ! grep -q 'vitest.css' REPORTES/vitest_report.html; then
-              sed -i '0,/<head[^>]*>/s||&\
-            <link rel="stylesheet" href="vitest.css">|' REPORTES/vitest_report.html
+            if ! grep -q '<link.*pytest.css' REPORTES/vitest_report.html; then
+              sed -i '/<head[^>]*>/a\    <link rel="stylesheet" href="pytest.css">' REPORTES/vitest_report.html || true
             fi
           fi
+          
+          # Agregar CSS a coverage_html/index.html
+          if [ -f REPORTES/coverage_html/index.html ]; then
+            if ! grep -q '<link.*coverage.css' REPORTES/coverage_html/index.html; then
+              sed -i '/<head[^>]*>/a\    <link rel="stylesheet" href="../../coverage.css">' REPORTES/coverage_html/index.html || true
+            fi
+          fi
+          
+          echo "✅ Archivos parchados"
 
       - name: Install PDF tools
         if: always()
