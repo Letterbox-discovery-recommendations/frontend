@@ -1,14 +1,12 @@
 import { defineConfig } from "vitest/config";
 import { defineVitestProject } from "@nuxt/test-utils/config";
 import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   test: {
-    coverage: {
-      reporter: ['html', 'text', 'json'],
-      include: ['components/**/*.vue', 'composables/**/*.ts', 'pages/**/*.vue', 'stores/**/*.{ts,js}'],
-      exclude: ['node_modules/', 'test/'],
-    },
     projects: [
       {
         test: {

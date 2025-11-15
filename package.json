@@ -10,7 +10,7 @@
     "postinstall": "nuxt prepare",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:ui": "vitest --ui" 
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@nuxt/eslint": "1.9.0",
