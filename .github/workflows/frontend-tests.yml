@@ -1,16 +1,29 @@
-name: Frontend Tests (PR to DEV)
+name: Frontend Tests and Upload PDF to S3
 
 on:
+  push:
+    branches: [ dev, test-integration ]
   pull_request:
     branches: [ dev ]
   workflow_dispatch:
 
 jobs:
-  test:
+  test-and-upload:
     runs-on: ubuntu-latest
+    environment: test-aws
+
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      AWS_REGION: us-east-2
+      S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+      S3_DESTINATION_PREFIX: frontend/
+      PDF_FILE_NAME: ${{ github.sha }}.pdf
 
     steps:
-      - name: Checkout del repositorio
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Configurar Node.js
@@ -22,5 +35,159 @@ jobs:
       - name: Instalar dependencias
         run: yarn install --frozen-lockfile
 
-      - name: Ejecutar pruebas con Vitest
-        run: yarn test --run
+      - name: Prepare REPORTES dir
+        run: mkdir -p REPORTES
+
+      - name: Download CSS/templates
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_API: https://api.github.com/repos/Letterbox-discovery-recommendations/coverage_reportes/contents
+          REF: main
+        run: |
+          set -euo pipefail
+          download_raw () {
+            local file="$1"
+            curl -H "Authorization: token ${GH_TOKEN}" \
+                 -H "Accept: application/vnd.github.v3.raw" \
+                 -fsSL "${BASE_API}/${file}?ref=${REF}" -o "REPORTES/${file}"
+          }
+          download_raw coverage.css
+          download_raw vitest.css || echo "vitest.css no encontrado, continuando..."
+          download_raw cover.html
+          ls -l REPORTES
+
+      - name: Fill cover.html metadata
+        run: |
+          set -euo pipefail
+          ACTOR='${{ github.actor }}'
+          DATE="$(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          REF_NAME='${{ github.ref_name }}'
+          SHA='${{ github.sha }}'
+          WORKFLOW='${{ github.workflow }}'
+          sed -i \
+              "s/__actor__/${ACTOR//\//\\/}/g; \
+               s/__date__/${DATE//\//\\/}/g; \
+               s/__ref_name__/${REF_NAME//\//\\/}/g; \
+               s/__sha__/${SHA//\//\\/}/g; \
+               s/__workflow__/${WORKFLOW//\//\\/}/g" \
+          REPORTES/cover.html
+
+      - name: Run tests with reports and coverage
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          mkdir -p REPORTES
+          yarn test:run --coverage || true
+
+      - name: Generate HTML report from Vitest
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          # Vitest generará reportes en coverage/
+          # Copiamos a REPORTES si existen
+          if [ -d coverage ]; then
+            cp -r coverage REPORTES/coverage_html || true
+            if [ -f coverage/index.html ]; then
+              cp coverage/index.html REPORTES/vitest_report.html || true
+            fi
+          fi
+
+      - name: Patch coverage HTML to include CSS
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ -f REPORTES/coverage_html/index.html ]; then
+            if ! grep -q 'coverage.css' REPORTES/coverage_html/index.html; then
+              sed -i '0,/<head[^>]*>/s||&\
+            <link rel="stylesheet" href="../coverage.css">|' REPORTES/coverage_html/index.html
+            fi
+          fi
+          if [ -f REPORTES/vitest_report.html ]; then
+            if ! grep -q 'vitest.css' REPORTES/vitest_report.html; then
+              sed -i '0,/<head[^>]*>/s||&\
+            <link rel="stylesheet" href="vitest.css">|' REPORTES/vitest_report.html
+            fi
+          fi
+
+      - name: Install PDF tools
+        if: always()
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wkhtmltopdf poppler-utils
+
+      - name: Build consolidated PDF
+        if: always()
+        run: |
+          set -euo pipefail
+          command -v wkhtmltopdf >/dev/null 2>&1 || { echo "wkhtmltopdf no está instalado"; exit 1; }
+          command -v pdfunite >/dev/null 2>&1 || { echo "pdfunite no está instalado"; exit 1; }
+
+          CWD="$(pwd)"
+          COVER_HTML="${CWD}/REPORTES/cover.html"
+          VITEST_HTML="${CWD}/REPORTES/vitest_report.html"
+          COV_INDEX="${CWD}/REPORTES/coverage_html/index.html"
+
+          mkdir -p REPORTES
+          pushd REPORTES >/dev/null
+
+          [ -f "${COVER_HTML}" ] && wkhtmltopdf --enable-local-file-access --print-media-type "${COVER_HTML}" 00_cover.pdf || echo "cover.html -> PDF falló o falta"
+          [ -f "${VITEST_HTML}" ] && wkhtmltopdf --enable-local-file-access --print-media-type "${VITEST_HTML}" 01_tests.pdf || echo "vitest_report.html -> PDF falló o falta"
+          [ -f "${COV_INDEX}" ] && wkhtmltopdf --enable-local-file-access --print-media-type "${COV_INDEX}" 02_coverage.pdf || echo "coverage_html/index.html -> PDF falló o falta"
+
+          PDFs=()
+          [ -f 00_cover.pdf ] && PDFs+=("00_cover.pdf")
+          [ -f 01_tests.pdf ] && PDFs+=("01_tests.pdf")
+          [ -f 02_coverage.pdf ] && PDFs+=("02_coverage.pdf")
+
+          if [ ${#PDFs[@]} -gt 0 ]; then
+            echo "Uniendo PDFs: ${PDFs[*]}"
+            pdfunite "${PDFs[@]}" "${PDF_FILE_NAME}"
+            ls -la "${PDF_FILE_NAME}" || true
+          else
+            echo "No hay PDFs para unificar"
+          fi
+
+          popd >/dev/null
+          ls -la REPORTES || true
+
+      - name: Ensure final PDF exists
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ ! -f "REPORTES/${PDF_FILE_NAME}" ]; then
+            echo "No se generó REPORTES/${PDF_FILE_NAME}. Se omitirá la subida a S3."
+            exit 2
+          fi
+
+      - name: Configure AWS credentials
+        if: github.event_name == 'push' && always()
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload PDF to S3
+        if: github.event_name == 'push' && (success() || failure())
+        run: |
+          set -euo pipefail
+          if [ ! -f "REPORTES/${PDF_FILE_NAME}" ]; then
+            echo "No hay PDF para subir. Saliendo sin error."
+            exit 0
+          fi
+          DEST="s3://${S3_BUCKET_NAME}/${S3_DESTINATION_PREFIX}${PDF_FILE_NAME}"
+          echo "Subiendo ${PDF_FILE_NAME} a ${DEST}"
+          aws s3 cp "REPORTES/${PDF_FILE_NAME}" "${DEST}" --only-show-errors
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f "REPORTES/${PDF_FILE_NAME}" ]; then
+            if [ "${{ github.event_name }}" == "push" ]; then
+              echo "PDF subido a s3://${S3_BUCKET_NAME}/${S3_DESTINATION_PREFIX}${PDF_FILE_NAME}"
+            else
+              echo "PDF generado (PR) - no se sube a S3"
+            fi
+          else
+            echo "No se generó PDF."
+          fi

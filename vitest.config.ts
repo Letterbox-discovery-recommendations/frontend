@@ -4,6 +4,11 @@ import path from 'path'
 
 export default defineConfig({
   test: {
+    coverage: {
+      reporter: ['html', 'text', 'json'],
+      include: ['components/**/*.vue', 'composables/**/*.ts', 'pages/**/*.vue', 'stores/**/*.{ts,js}'],
+      exclude: ['node_modules/', 'test/'],
+    },
     projects: [
       {
         test: {
