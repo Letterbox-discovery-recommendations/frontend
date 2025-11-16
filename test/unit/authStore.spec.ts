@@ -16,6 +16,8 @@ describe('Auth Store', () => {
     })
     // Nuxt runtime config is used inside the auth store; mock it for unit tests
     ;(globalThis as any).useRuntimeConfig = () => ({ public: { usersUrl: 'http://test' } })
+    // Mock navigateTo to avoid ReferenceError when login calls it
+    ;(globalThis as any).navigateTo = vi.fn()
   })
 
   it('tiene el estado inicial correcto', () => {
@@ -35,5 +37,23 @@ describe('Auth Store', () => {
     await expect(store.login(fakeForm)).rejects.toThrow('Network Error')
     expect(store.token).toBeNull()
     expect(store.userId).toBeNull()
+  })
+
+  it('login exitoso guarda token y userId', async () => {
+    const store = useAuthStore()
+
+    const fakePayload = { user_id: 42 }
+    const fakeToken = ['h', Buffer.from(JSON.stringify(fakePayload)).toString('base64'), 's'].join('.')
+
+    ;(global.$fetch as any).mockResolvedValueOnce({ access_token: fakeToken })
+
+    const form = new URLSearchParams({ username: 'tester', password: '1234' })
+
+    await store.login(form)
+
+    expect(store.token).toBe(fakeToken)
+    expect(store.userId).toBe(42)
+    // navigateTo should have been called to navigate after login
+    expect((globalThis as any).navigateTo).toHaveBeenCalled()
   })
 })

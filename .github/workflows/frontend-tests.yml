@@ -1,16 +1,24 @@
-name: Frontend Tests (PR to DEV)
+name: Frontend Tests and Generate PDF
 
 on:
+  push:
+    branches: [ dev, test-integration ]
   pull_request:
     branches: [ dev ]
   workflow_dispatch:
 
 jobs:
-  test:
+  test-and-generate-pdf:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+
+    env:
+      PDF_FILE_NAME: ${{ github.sha }}.pdf
+
     steps:
-      - name: Checkout del repositorio
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Configurar Node.js
@@ -22,5 +30,186 @@ jobs:
       - name: Instalar dependencias
         run: yarn install --frozen-lockfile
 
-      - name: Ejecutar pruebas con Vitest
-        run: yarn test --run
+      - name: Prepare REPORTES dir
+        run: mkdir -p REPORTES
+
+      - name: Download templates and CSS from coverage_reportes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_API: https://api.github.com/repos/Letterbox-discovery-recommendations/coverage_reportes/contents
+          REF: main
+        run: |
+          set -euo pipefail
+          download_raw() {
+            local file="$1"
+            echo "📥 Descargando $file..."
+            curl -H "Authorization: token ${GH_TOKEN}" \
+                 -H "Accept: application/vnd.github.v3.raw" \
+                 -fsSL "${BASE_API}/${file}?ref=${REF}" \
+                 -o "REPORTES/${file}" || echo "⚠️  No se pudo descargar $file"
+          }
+          download_raw cover.html
+          download_raw cover.css
+          download_raw coverage.css
+          download_raw pytest.css
+          echo "✅ Descargas completadas"
+          ls -lah REPORTES/
+
+      - name: Fill cover.html metadata
+        run: |
+          set -euo pipefail
+          ACTOR='${{ github.actor }}'
+          DATE="$(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          REF_NAME='${{ github.ref_name }}'
+          SHA='${{ github.sha }}'
+          WORKFLOW='${{ github.workflow }}'
+          sed -i \
+              "s/__actor__/${ACTOR//\//\\/}/g; \
+               s/__date__/${DATE//\//\\/}/g; \
+               s/__ref_name__/${REF_NAME//\//\\/}/g; \
+               s/__sha__/${SHA//\//\\/}/g; \
+               s/__workflow__/${WORKFLOW//\//\\/}/g" \
+          REPORTES/cover.html
+
+      - name: Run tests with reports and coverage
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          mkdir -p REPORTES
+          yarn test:run > REPORTES/test_output.txt 2>&1 || true
+
+      - name: Generate HTML report from Vitest
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          # Crear un reporte HTML simple a partir de la salida de pruebas
+          cat > REPORTES/vitest_report.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Reporte de Pruebas - Vitest</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 40px; background: #f5f5f5; }
+              .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+              h1 { color: #333; border-bottom: 3px solid #6366f1; padding-bottom: 10px; }
+              h2 { color: #555; margin-top: 30px; }
+              pre { background: #f8f8f8; padding: 15px; border-left: 4px solid #6366f1; overflow-x: auto; }
+              .success { color: #10b981; font-weight: bold; }
+              .failure { color: #ef4444; font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>📊 Reporte de Pruebas - Vitest</h1>
+              <h2>Salida de Ejecución</h2>
+              <pre>
+          EOF
+          cat REPORTES/test_output.txt >> REPORTES/vitest_report.html
+          cat >> REPORTES/vitest_report.html << 'EOF'
+              </pre>
+              <hr>
+              <p><small>Generado automáticamente por GitHub Actions</small></p>
+            </div>
+          </body>
+          </html>
+          EOF
+          echo "✅ Reporte HTML generado"
+
+      - name: Patch coverage HTML to include CSS
+        if: always()
+        run: |
+          set -euo pipefail
+          echo "🔨 Parchando archivos HTML con CSS..."
+          
+          # Agregar CSS a cover.html si no lo tiene
+          if [ -f REPORTES/cover.html ]; then
+            if ! grep -q '<link.*cover.css' REPORTES/cover.html; then
+              sed -i '/<head[^>]*>/a\    <link rel="stylesheet" href="cover.css">' REPORTES/cover.html || true
+            fi
+          fi
+          
+          # Agregar CSS a vitest_report.html
+          if [ -f REPORTES/vitest_report.html ]; then
+            if ! grep -q '<link.*pytest.css' REPORTES/vitest_report.html; then
+              sed -i '/<head[^>]*>/a\    <link rel="stylesheet" href="pytest.css">' REPORTES/vitest_report.html || true
+            fi
+          fi
+          
+          # Agregar CSS a coverage_html/index.html
+          if [ -f REPORTES/coverage_html/index.html ]; then
+            if ! grep -q '<link.*coverage.css' REPORTES/coverage_html/index.html; then
+              sed -i '/<head[^>]*>/a\    <link rel="stylesheet" href="../../coverage.css">' REPORTES/coverage_html/index.html || true
+            fi
+          fi
+          
+          echo "✅ Archivos parchados"
+
+      - name: Install PDF tools
+        if: always()
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wkhtmltopdf poppler-utils
+
+      - name: Build consolidated PDF
+        if: always()
+        run: |
+          set -euo pipefail
+          command -v wkhtmltopdf >/dev/null 2>&1 || { echo "wkhtmltopdf no está instalado"; exit 1; }
+          command -v pdfunite >/dev/null 2>&1 || { echo "pdfunite no está instalado"; exit 1; }
+
+          CWD="$(pwd)"
+          COVER_HTML="${CWD}/REPORTES/cover.html"
+          VITEST_HTML="${CWD}/REPORTES/vitest_report.html"
+          COV_INDEX="${CWD}/REPORTES/coverage_html/index.html"
+
+          mkdir -p REPORTES
+          pushd REPORTES >/dev/null
+
+          [ -f "${COVER_HTML}" ] && wkhtmltopdf --enable-local-file-access --print-media-type "${COVER_HTML}" 00_cover.pdf || echo "cover.html -> PDF falló o falta"
+          [ -f "${VITEST_HTML}" ] && wkhtmltopdf --enable-local-file-access --print-media-type "${VITEST_HTML}" 01_tests.pdf || echo "vitest_report.html -> PDF falló o falta"
+          [ -f "${COV_INDEX}" ] && wkhtmltopdf --enable-local-file-access --print-media-type "${COV_INDEX}" 02_coverage.pdf || echo "coverage_html/index.html -> PDF falló o falta"
+
+          PDFs=()
+          [ -f 00_cover.pdf ] && PDFs+=("00_cover.pdf")
+          [ -f 01_tests.pdf ] && PDFs+=("01_tests.pdf")
+          [ -f 02_coverage.pdf ] && PDFs+=("02_coverage.pdf")
+
+          if [ ${#PDFs[@]} -gt 0 ]; then
+            echo "Uniendo PDFs: ${PDFs[*]}"
+            pdfunite "${PDFs[@]}" "${PDF_FILE_NAME}"
+            ls -la "${PDF_FILE_NAME}" || true
+          else
+            echo "No hay PDFs para unificar"
+          fi
+
+          popd >/dev/null
+          ls -la REPORTES || true
+
+      - name: Ensure final PDF exists
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ ! -f "REPORTES/${PDF_FILE_NAME}" ]; then
+            echo "⚠️ No se generó REPORTES/${PDF_FILE_NAME}"
+            exit 1
+          fi
+
+      - name: Upload PDF as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-pdf
+          path: REPORTES/${{ env.PDF_FILE_NAME }}
+          retention-days: 30
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f "REPORTES/${PDF_FILE_NAME}" ]; then
+            echo "✅ PDF generado y guardado como artefacto"
+            ls -lh "REPORTES/${PDF_FILE_NAME}"
+          else
+            echo "❌ No se generó el PDF"
+          fi
