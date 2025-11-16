@@ -86,6 +86,21 @@ const loadSimilarMovies = async (movieId: number) => {
   }
 };
 
+// Función para cargar detalles completos de la película
+const loadMovieDetails = async (movieId: number) => {
+  loading.value = true;
+  try {
+    // Use GqlGetMovie directly with $fetch to get fresh data every time
+    const data = await GqlGetMovie({ id: movieId });
+    movieData.value = (data?.pelicula as Movie) || null;
+  } catch (error) {
+    console.error("Error loading movie data:", error);
+    movieData.value = null;
+  } finally {
+    loading.value = false;
+  }
+};
+
 const closeModal = () => {
   modalStore.closeModal();
   movieData.value = null;
@@ -94,21 +109,21 @@ const closeModal = () => {
 
 watch(selectedMovie, async (newMovie) => {
   if (newMovie && (newMovie as any).id) {
-    loading.value = true;
+    const movieId = (newMovie as any).id;
+    
     try {
-      const { data } = await useAsyncGql({
-        operation: "GetMovie",
-        variables: {
-          id: (newMovie as any).id,
-        },
-      });
-      movieData.value = (data.value?.pelicula as Movie) || null;
+      // Load fresh movie details
+      await loadMovieDetails(movieId);
+
+      // If load failed, use basic data as fallback
+      if (!movieData.value) {
+        movieData.value = newMovie as Movie;
+      }
 
       // Enviar visita a película cuando se carga exitosamente
       if (movieData.value?.id) {
         await sendMovieVisit(movieData.value.id);
         // Cargar películas similares
-
         await loadSimilarMovies(movieData.value.id);
       }
     } catch (error) {
@@ -116,13 +131,11 @@ watch(selectedMovie, async (newMovie) => {
       movieData.value = newMovie as Movie; // Fallback a los datos básicos
 
       // Enviar visita incluso con datos básicos si hay ID
-      if ((newMovie as any).id) {
-        await sendMovieVisit((newMovie as any).id);
+      if (movieId) {
+        await sendMovieVisit(movieId);
         // Cargar películas similares
-        await loadSimilarMovies((newMovie as any).id);
+        await loadSimilarMovies(movieId);
       }
-    } finally {
-      loading.value = false;
     }
   }
 });

@@ -21,20 +21,29 @@ const authStore = useAuthStore();
 
 const value = ref("");
 
-const { data: platforms } = await useAsyncGql({
-  operation: "GetPlatforms",
-});
+// Load platforms and genres at component setup
+const platforms = ref<any>(null);
+const genres = ref<any>(null);
 
-const { data: genres } = await useAsyncGql({
-  operation: "GetGenres",
+onMounted(async () => {
+  try {
+    platforms.value = await GqlGetPlatforms();
+    genres.value = await GqlGetGenres();
+  } catch (error) {
+    console.error("Error loading dropdown data:", error);
+  }
+  
+  // Fetch movies after data is loaded
+  fetchMovies();
+  console.log(dropdownItems.value);
 });
 
 const dropdownItems = computed(() => {
   if (props.endpoint === "genre") {
-    return genres.value?.generos?.map((genre) => genre.nombre) || [];
+    return genres.value?.generos?.map((genre: any) => genre.nombre) || [];
   } else if (props.endpoint === "platform") {
     return (
-      platforms.value?.plataformas?.map((platform) => platform.nombre) || []
+      platforms.value?.plataformas?.map((platform: any) => platform.nombre) || []
     );
   }
   return [];
@@ -123,10 +132,8 @@ watch(value, () => {
   }
 });
 
-onMounted(() => {
-  fetchMovies();
-  console.log(dropdownItems.value);
-});
+// Remove the old onMounted call since we moved it above
+// onMounted is now integrated with the async setup above
 </script>
 <template>
   <div class="flex w-full flex-col justify-center gap-4">
