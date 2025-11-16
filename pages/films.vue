@@ -67,9 +67,13 @@ onMounted(() => {
 });
 
 // Watch variables and refetch when they change
-watch(variables, () => {
-  fetchMovies();
-}, { deep: true });
+watch(
+  variables,
+  () => {
+    fetchMovies();
+  },
+  { deep: true },
+);
 
 // Sync search with URL params
 onMounted(() => {
@@ -77,7 +81,7 @@ onMounted(() => {
   if (searchQuery && searchQuery !== searchStore.search) {
     searchStore.setSearch(searchQuery);
   }
-  
+
   // Initial fetch is already done above, but keep this for search sync
 });
 
@@ -140,6 +144,12 @@ watch(
     page.value = parseInt(newPage as string) || 1;
   },
 );
+
+// Clear filters and search when leaving the films page
+onBeforeUnmount(() => {
+  filterStore.clearFilters();
+  searchStore.clearSearch();
+});
 
 useSeoMeta({
   title: "cineTrack - Films",

@@ -62,7 +62,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
 <template>
   <div
-    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 px-4 py-8"
+    class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 p-12 md:p-16 lg:p-32"
   >
     <UForm
       :schema="schema"

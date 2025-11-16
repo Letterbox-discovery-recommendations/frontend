@@ -28,6 +28,7 @@ const selectedFriends = ref<string[]>([]);
 const isGenerating = ref(false);
 const amigos = ref<Friend[]>([]);
 const isLoadingFriends = ref(false);
+const toast = useToast();
 
 // Fetch friends from API
 const fetchFriends = async () => {
@@ -253,7 +254,7 @@ const handleQueVeoHoy = async () => {
 
     // Fetch collaborative recommendations
     const recommendations = await $fetch<(Movie | RecommendationItem)[]>(
-      `${baseUrl}/api/v1/recommendations/collaborative`,
+      `${baseUrl}/api/v1/recommendations/content`,
       {
         headers: {
           Authorization: `Bearer ${authStore.token}`,
@@ -283,7 +284,13 @@ const handleQueVeoHoy = async () => {
     }
   } catch (error) {
     console.error("Error fetching recommendation:", error);
-    // You could show an error toast here
+
+    toast.add({
+      title: "Error al obtener recomendación",
+      description: "No hay recomendaciones disponibles para este usuario.",
+      color: "error",
+      icon: "i-lucide-alert-circle",
+    });
   }
 };
 
@@ -487,7 +494,7 @@ const linksUser = [
         <!-- Wrap avatar in a native button so the entire circular area is clickable -->
         <button
           type="button"
-          class="flex items-center justify-center rounded-full cursor-pointer bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          class="flex cursor-pointer items-center justify-center rounded-full bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           aria-label="Open user menu"
         >
           <UAvatar
