@@ -32,7 +32,7 @@ onMounted(async () => {
   } catch (error) {
     console.error("Error loading dropdown data:", error);
   }
-  
+
   // Fetch movies after data is loaded
   fetchMovies();
   console.log(dropdownItems.value);
@@ -43,7 +43,8 @@ const dropdownItems = computed(() => {
     return genres.value?.generos?.map((genre: any) => genre.nombre) || [];
   } else if (props.endpoint === "platform") {
     return (
-      platforms.value?.plataformas?.map((platform: any) => platform.nombre) || []
+      platforms.value?.plataformas?.map((platform: any) => platform.nombre) ||
+      []
     );
   }
   return [];
@@ -171,6 +172,7 @@ watch(value, () => {
 
     <UCarousel
       v-else-if="!isLoading"
+      arrows
       v-slot="{ item }"
       :items="movies"
       :ui="{ item: 'basis-1/3 md:basis-1/4 lg:basis-1/5' }"
