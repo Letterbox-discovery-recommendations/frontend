@@ -484,15 +484,22 @@ const linksUser = [
       />
 
       <UDropdownMenu v-if="authStore.userId" :items="dropdownItems">
-        <UAvatar
-          :alt="authStore.name ?? undefined"
-          :chip="{
-            inset: true,
-            color: 'success',
-          }"
-          class="cursor-pointer"
-          size="2xl"
-        />
+        <!-- Wrap avatar in a native button so the entire circular area is clickable -->
+        <button
+          type="button"
+          class="flex items-center justify-center rounded-full cursor-pointer bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          aria-label="Open user menu"
+        >
+          <UAvatar
+            :alt="authStore.name ?? undefined"
+            :chip="{
+              inset: true,
+              color: 'success',
+            }"
+            class="block pt-1"
+            size="2xl"
+          />
+        </button>
       </UDropdownMenu>
     </div>
   </div>
