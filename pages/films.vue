@@ -152,7 +152,7 @@ onBeforeUnmount(() => {
 });
 
 useSeoMeta({
-  title: "cineTrack - Films",
+  title: "Films",
   description: "Filtra entre todas las peliculas .",
 });
 </script>

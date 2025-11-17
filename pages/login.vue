@@ -4,7 +4,7 @@ import type { FormSubmitEvent } from "@nuxt/ui";
 const toast = useToast();
 
 useSeoMeta({
-  title: "cineTrack - Iniciar Sesión",
+  title: "Iniciar Sesión",
   description:
     "Inicia sesión en tu cuenta para acceder a recomendaciones personalizadas.",
 });
