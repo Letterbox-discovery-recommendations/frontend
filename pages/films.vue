@@ -45,10 +45,35 @@ const variables = computed(() => {
   };
 });
 
-const { data } = await useAsyncGql({
-  operation: "GetMovies",
-  variables: variables,
+// Use ref for movies data and fetch manually
+const data = ref<any>(null);
+const isLoadingMovies = ref(false);
+
+const fetchMovies = async () => {
+  isLoadingMovies.value = true;
+  try {
+    data.value = await GqlGetMovies(variables.value);
+  } catch (error) {
+    console.error("Error fetching movies:", error);
+    data.value = null;
+  } finally {
+    isLoadingMovies.value = false;
+  }
+};
+
+// Initial fetch
+onMounted(() => {
+  fetchMovies();
 });
+
+// Watch variables and refetch when they change
+watch(
+  variables,
+  () => {
+    fetchMovies();
+  },
+  { deep: true },
+);
 
 // Sync search with URL params
 onMounted(() => {
@@ -56,6 +81,8 @@ onMounted(() => {
   if (searchQuery && searchQuery !== searchStore.search) {
     searchStore.setSearch(searchQuery);
   }
+
+  // Initial fetch is already done above, but keep this for search sync
 });
 
 // Watch for search changes and update URL
@@ -118,8 +145,14 @@ watch(
   },
 );
 
+// Clear filters and search when leaving the films page
+onBeforeUnmount(() => {
+  filterStore.clearFilters();
+  searchStore.clearSearch();
+});
+
 useSeoMeta({
-  title: "cineTrack - Films",
+  title: "Films",
   description: "Filtra entre todas las peliculas .",
 });
 </script>

@@ -1,20 +1,25 @@
 <script setup lang="ts">
 const filterStore = useFilterStore();
 
-const { data: genres } = useAsyncGql({
-  operation: "GetGenres",
-});
+// Load genres and platforms at component setup
+const genres = ref<any>(null);
+const platforms = ref<any>(null);
 
-const { data: platforms } = useAsyncGql({
-  operation: "GetPlatforms",
+onMounted(async () => {
+  try {
+    genres.value = await GqlGetGenres();
+    platforms.value = await GqlGetPlatforms();
+  } catch (error) {
+    console.error("Error loading filter data:", error);
+  }
 });
 
 const generoItems = computed(() => {
-  return genres.value?.generos?.map((genre) => genre.nombre) || [];
+  return genres.value?.generos?.map((genre: any) => genre.nombre) || [];
 });
 
 const plataformaItems = computed(() => {
-  return platforms.value?.plataformas?.map((platform) => platform.nombre) || [];
+  return platforms.value?.plataformas?.map((platform: any) => platform.nombre) || [];
 });
 
 const estrenoItems = ref([

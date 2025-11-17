@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 useSeoMeta({
-  title: "cineTrack - Top de películas",
+  title: "Top de películas",
   description: "Filtra entre las peliculas mas populares del momento.",
 });
 </script>
